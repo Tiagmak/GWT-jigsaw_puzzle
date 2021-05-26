@@ -35,7 +35,7 @@ public class InitialPanel extends Composite{
 		Label label1 = new Label("O Tiago é feio");
 		
 		Style style = label1.getElement().getStyle();
-		style.setFontSize(55, Unit.PX);
+		style.setFontSize(5, Unit.CM);
 		style.setColor("#362757");
 		
 		loginPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
