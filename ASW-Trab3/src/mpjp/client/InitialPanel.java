@@ -56,15 +56,9 @@ class InitialPanel extends Composite {
 			public void onClick(ClickEvent event) {
 				CreateGame join = new CreateGame(panels, managerService);
 				panels.add(join);
-				panels.showWidget(2);
+				panels.showWidget(1);
 			}
 		});
 	}
 
 }
-
-/*
- * Label label1 = new Label("O Tiago é feio"); Style style =
- * label1.getElement().getStyle(); style.setFontSize(5, Unit.CM);
- * style.setColor("#362757");
- */

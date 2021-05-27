@@ -1,6 +1,5 @@
 package mpjp.client;
 
-
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -14,6 +13,7 @@ import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.HTML;
@@ -34,21 +34,18 @@ public class CreateGame extends Composite {
 	final HorizontalPanel dimensionPanel = new HorizontalPanel();
 
 	final HorizontalPanel buttonsPanel = new HorizontalPanel();
-	
+
 	ImageElement image;
-	//Image img2 = new Image("exterior3.jpg");
-	//Image img3 = new Image("exterior7.jpg");
+	// Image img2 = new Image("exterior3.jpg");
+	// Image img3 = new Image("exterior7.jpg");
 
-	RadioButton img1Button = new RadioButton("images","oo");
-
-
-
+	RadioButton img1Button = new RadioButton("images", "oo");
 
 	RadioButton cuttingRoundButton = new RadioButton("cuttings", "Round");
 	RadioButton cuttingStraightButton = new RadioButton("cuttings", "Straight");
 	RadioButton cuttingTriangularButton = new RadioButton("cuttings", "Triangular");
 	RadioButton cuttingStandardButton = new RadioButton("cuttings", "Standard");
-	
+
 	RadioButton dimension1x2Button = new RadioButton("dimension", "1x2");
 	RadioButton dimension2x1Button = new RadioButton("dimension", "2x1");
 	RadioButton dimension5x5Button = new RadioButton("dimension", "5x5");
@@ -60,37 +57,28 @@ public class CreateGame extends Composite {
 	final Label images = new HTML("Images");
 	final Label cuttings = new HTML("Cuting");
 	final Label dimensions = new HTML("Dimension");
-	
+
 	Button buttonBack = new Button("Back");
 	Button buttonPlayGame = new Button("Play Game");
 
 	CreateGame(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
-		
-		Canvas canvas = Canvas.createIfSupported();
+
+		/*Canvas canvas = Canvas.createIfSupported();
 		final Context2d context2d = canvas.getContext2d();
-		
-		/*MPJPResources.loadImageElement("exterior2.png", face -> img = face);
-		context2d.drawImage(image, 0, 0);
-		
-		image.addLoadHandler(new LoadHandler() {
 
-	        @Override
-	        public void onLoad(LoadEvent event) {
-	            context2d.drawImage(img, 0, 0);
-	        }
-	    });
-		
-			
-			
-		imagesPanel.add(face);*/
+		MPJPResources.loadImageElement("exterior2.jpg", i -> {
+			image = i;
+			 context2d.drawImage(image, 50, 50);
+		});
 
+		imagesPanel.add(i);*/
 		cuttingsPanel.setSpacing(55);
 		cuttingsPanel.add(cuttingRoundButton);
 		cuttingsPanel.add(cuttingStraightButton);
 		cuttingsPanel.add(cuttingTriangularButton);
 		cuttingsPanel.add(cuttingStandardButton);
-		
+
 		dimensionPanel.setSpacing(55);
 		dimensionPanel.add(dimension1x2Button);
 		dimensionPanel.add(dimension2x1Button);
@@ -98,7 +86,7 @@ public class CreateGame extends Composite {
 		dimensionPanel.add(dimension8x9Button);
 		dimensionPanel.add(dimension10x10Button);
 		dimensionPanel.add(dimension14x15Button);
-		
+
 		buttonsPanel.setSpacing(35);
 		buttonsPanel.add(buttonBack);
 		buttonsPanel.add(buttonPlayGame);
@@ -115,14 +103,12 @@ public class CreateGame extends Composite {
 		centralPanel.add(dimensions);
 		centralPanel.add(dimensionPanel);
 		centralPanel.add(buttonsPanel);
-		
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		title.addStyleName("title");
 		allPanels.add(title);
 		allPanels.add(centralPanel);
-		
-		
+
 		buttonBack.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -130,13 +116,13 @@ public class CreateGame extends Composite {
 				panels.showWidget(0);
 			}
 		});
-		
+
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				PlayGame playGame = new PlayGame(panels, managerService);
 				panels.add(playGame);
-				panels.showWidget(3);
+				panels.showWidget(2);
 			}
 		});
 	}
