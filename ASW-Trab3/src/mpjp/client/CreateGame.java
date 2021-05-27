@@ -24,6 +24,8 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
+import mpjp.shared.MPJPException;
+
 public class CreateGame extends Composite {
 
 	final VerticalPanel allPanels = new VerticalPanel();
@@ -64,20 +66,21 @@ public class CreateGame extends Composite {
 	CreateGame(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
 
-		/*Canvas canvas = Canvas.createIfSupported();
-		final Context2d context2d = canvas.getContext2d();
-
-		MPJPResources.loadImageElement("exterior2.jpg", i -> {
-			image = i;
-			 context2d.drawImage(image, 50, 50);
-		});
-
-		imagesPanel.add(i);*/
+		/*
+		 * Canvas canvas = Canvas.createIfSupported(); final Context2d context2d =
+		 * canvas.getContext2d();
+		 * 
+		 * MPJPResources.loadImageElement("exterior2.jpg", i -> { image = i;
+		 * context2d.drawImage(image, 50, 50); });
+		 * 
+		 * imagesPanel.add(i);
+		 */
 		cuttingsPanel.setSpacing(55);
 		cuttingsPanel.add(cuttingRoundButton);
 		cuttingsPanel.add(cuttingStraightButton);
 		cuttingsPanel.add(cuttingTriangularButton);
 		cuttingsPanel.add(cuttingStandardButton);
+		cuttingRoundButton.setValue(true);
 
 		dimensionPanel.setSpacing(55);
 		dimensionPanel.add(dimension1x2Button);
@@ -86,6 +89,7 @@ public class CreateGame extends Composite {
 		dimensionPanel.add(dimension8x9Button);
 		dimensionPanel.add(dimension10x10Button);
 		dimensionPanel.add(dimension14x15Button);
+		dimension1x2Button.setValue(true);
 
 		buttonsPanel.setSpacing(35);
 		buttonsPanel.add(buttonBack);
@@ -120,7 +124,17 @@ public class CreateGame extends Composite {
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				PlayGame playGame = new PlayGame(panels, managerService);
+				
+				PlayGame playGame = null;
+				try {
+					playGame = new PlayGame(panels, managerService, "imageName", "triangular", "2x2");
+				} catch (MPJPException e) {
+					e.printStackTrace();
+				}
+				// TODO ATENÇÃO!!! TIAGO esta treta do try e do datch é o ecipse que me obriga a
+				// fazer, senão para mudar de página faz-se como nas outras cenas... No outro
+				// trabalho fazer isto não tinha problema..
+
 				panels.add(playGame);
 				panels.showWidget(2);
 			}
