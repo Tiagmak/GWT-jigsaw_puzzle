@@ -18,6 +18,10 @@ public class Manager {
 	
 	private static Manager manager = null;
 	
+	private Manager() {
+		workspacePool = new WorkspacePool();
+	}
+	
 	/**
 	 * The single instance of this class
 	 * @return singleton

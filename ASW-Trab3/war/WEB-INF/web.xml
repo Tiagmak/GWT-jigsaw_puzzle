@@ -5,16 +5,26 @@
          version="2.5"
          xmlns="http://java.sun.com/xml/ns/javaee">
 
-  <!-- Servlets -->
-  <servlet>
-    <servlet-name>greetServlet</servlet-name>
-    <servlet-class>mpjp.server.GreetingServiceImpl</servlet-class>
-  </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>greetServlet</servlet-name>
-    <url-pattern>/asw_trab3/greet</url-pattern>
-  </servlet-mapping>
+  	<!-- Servlets -->
+  	 <servlet>
+	   <servlet-name>resourceServlet</servlet-name>
+	   <servlet-class>mpjp.server.Resource</servlet-class>
+	 </servlet>
+	
+	 <servlet-mapping>
+	   <servlet-name>resourceServlet</servlet-name>
+	   <url-pattern>/mpjp/resources/*</url-pattern>
+	 </servlet-mapping>
+  	
+	<servlet>
+		<servlet-name>mpjpServlet</servlet-name>
+		<servlet-class>mpjp.server.PuzzleServiceImpl</servlet-class>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>mpjpServlet</servlet-name>
+		<url-pattern>/asw_trab3/mpjp</url-pattern>
+	</servlet-mapping>
   
   <!-- Default page to serve -->
   <welcome-file-list>

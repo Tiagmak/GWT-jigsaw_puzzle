@@ -1,78 +1,70 @@
 package mpjp.client;
 
- import com.google.gwt.dom.client.Style;
-import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.PasswordTextBox;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
+class InitialPanel extends Composite {
 
+	final VerticalPanel allPanels = new VerticalPanel();
+	final VerticalPanel centralPanel = new VerticalPanel();
+	final HorizontalPanel optionsPanel = new HorizontalPanel();
 
-public class InitialPanel extends Composite{
-	
-	final VerticalPanel loginPanel = new VerticalPanel();
-	
-	final Button loginButton = new Button("Login");
-	
-	final TextBox nameField = new TextBox();
-	final PasswordTextBox passField = new PasswordTextBox();
-	final Label errorLabel = new Label();
-	final Label waitingLabel = new Label();
-	public String user = "";
-	public String pass = "";
-	
-	public InitialPanel(final DeckPanel panels, final GreetingServiceAsync managerService) {
-		
-		Label label1 = new Label("O Tiago é feio");
-		
-		Style style = label1.getElement().getStyle();
-		style.setFontSize(5, Unit.CM);
-		style.setColor("#362757");
-		
-		loginPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-		errorLabel.addStyleName("gwt-error");
-		
-		loginPanel.add(label1);
-		loginPanel.add(new HTML("username"));
-		loginPanel.add(nameField);
-		loginPanel.add(new HTML("password"));
-		loginPanel.add(passField);
-		loginPanel.add(loginButton);
-		loginPanel.add(errorLabel);
-		loginPanel.add(waitingLabel);
+	Label title = new Label("Welcome to Multi-Player Jigsaw Puzzle");
+	Label ask = new Label("Choose an option:");
+	Button buttonJoinGame = new Button("Join a new game");
+	Button buttonCreateNewGame = new Button("Create a new game");
 
-		initWidget(loginPanel);
-		//loginButton.addClickHandler(loginClick(panels,managerService));
-		
-	}
+	InitialPanel(final DeckPanel panels, final PuzzleServiceAsync managerService) {
+		initWidget(allPanels);
 
-	/*private ClickHandler loginClick(final DeckPanel panels,final GreetingServiceAsync managerService) {
-		ClickHandler handler = new ClickHandler() {
+		optionsPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		optionsPanel.addStyleName("optionsPanel");
+		//buttonJoinGame.addStyleName("button");
+		//buttonCreateNewGame.addStyleName("button");
+		optionsPanel.add(buttonJoinGame);
+		optionsPanel.add(buttonCreateNewGame);
+
+		centralPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		centralPanel.addStyleName("centralPanel");
+		ask.addStyleName("ask");
+		centralPanel.add(ask);
+		centralPanel.add(optionsPanel);
+
+		title.addStyleName("title");
+		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		allPanels.add(title);
+		allPanels.add(centralPanel);
+
+		buttonJoinGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-					loginToServer(panels,managerService);    
+				JoinGame join = new JoinGame(panels, managerService);
+				panels.add(join);
+				panels.showWidget(1);
 			}
-		};
-		return handler;
+		});
+
+		buttonCreateNewGame.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				CreateGame join = new CreateGame(panels, managerService);
+				panels.add(join);
+				panels.showWidget(2);
+			}
+		});
 	}
-	
-	public void loginToServer(final DeckPanel panels, final GreetingServiceAsync managerService){
-		// First, we validate the input.
-		final String userToServer = nameField.getValue();
-		final String passToServer = passField.getValue();
-		if (userToServer == null || passToServer == null || userToServer.length()<1 || passToServer.length()<1) {
-			Window.alert("Please fill username and password");
-			return;
-		}
-	}*/
-	
+
 }
+
+/*
+ * Label label1 = new Label("O Tiago é feio"); Style style =
+ * label1.getElement().getStyle(); style.setFontSize(5, Unit.CM);
+ * style.setColor("#362757");
+ */

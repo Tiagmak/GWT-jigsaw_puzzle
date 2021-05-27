@@ -63,9 +63,9 @@ public class PuzzleView implements Serializable{
 	 * @param id - of piece
 	 * @return - Point
 	 */
-	public Point getStandardPieceLocation​(int id){
-		return this.locations.get(id);
-		
+	
+	public Point getStandardPieceLocation(int id) {
+		return locations.get(id);
 	}
 	
 	/**
