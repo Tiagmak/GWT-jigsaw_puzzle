@@ -14,7 +14,6 @@ import mpjp.shared.PuzzleSelectInfo;
 import mpjp.shared.PuzzleView;
 import mpjp.shared.geom.Point;
 
-//Funções que vão ser fornecidas ao cliente
 @RemoteServiceRelativePath("mpjp")
 public interface PuzzleService extends RemoteService{
 

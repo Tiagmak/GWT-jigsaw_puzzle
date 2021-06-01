@@ -124,10 +124,10 @@ public class CreateGame extends Composite {
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				
+
 				PlayGame playGame = null;
 				try {
-					playGame = new PlayGame(panels, managerService, "imageName", "triangular", "2x2");
+					playGame = new PlayGame(panels, managerService, 1, "imageName", "triangular", "2x2");
 				} catch (MPJPException e) {
 					e.printStackTrace();
 				}

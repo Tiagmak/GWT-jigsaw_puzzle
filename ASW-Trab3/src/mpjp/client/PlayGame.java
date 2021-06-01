@@ -28,46 +28,88 @@ public class PlayGame extends Composite {
 	private Date lastUpdate = new Date();
 
 	private boolean moving = false;
-	private String workspaceId;
+	Timer poolAndPaintTimer = null;
+	private static final String RESOURCE_DIR = "mpjp/resources/";
+	/**
+	 * Pooling delay to update layout data and update view
+	 */
+	private static final long POOLING_DELAY = 60L * 1000L;
 
+	String workspaceId;
 	PuzzleInfo puzzleInfo;
 	PuzzleLayout currentPuzzleLayout;
 	PuzzleView currentPuzzleView;
 
-	PlayGame(final DeckPanel panels, final PuzzleServiceAsync managerService, String imageName, String cuttingName,
-			String dimension) throws MPJPException {
+	boolean initComplete = false;
+	boolean solveComplete = false;
+
+	PlayGame(final DeckPanel panels, final PuzzleServiceAsync managerService, int gameOption, String imageName,
+			String cuttingName, String dimension) throws MPJPException {
 		if (canvas == null) {
 			initWidget(new Label("Canvas not supported"));
 			return;
 		}
 		initWidget(allPanels);
+		initWorkspace(gameOption, imageName, cuttingName, 10, 10);
 		configureCanvas();
-
-		configureMpjp(imageName, cuttingName, 10, 10);
-
-		configureTimer();
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		allPanels.add(canvas);
 	}
 
-	private void configureMpjp(String imageName, String cuttingName, int rows, int columns) throws MPJPException {
+	private void initWorkspace(int gameOption, String imageName, String cuttingName, int rows, int columns)
+			throws MPJPException {
 		puzzleInfo = new PuzzleInfo(imageName, cuttingName, rows, columns, 600, 600);
-		puzzleServiceAsync.createWorkspace(puzzleInfo, new AsyncCallback<String>() {
+
+		if (gameOption == 1) {		// option create a new game
+			puzzleServiceAsync.createWorkspace(puzzleInfo, new AsyncCallback<String>() {
+				@Override
+				public void onSuccess(String result) {
+					workspaceId = result;
+				}
+
+				@Override
+				public void onFailure(Throwable caught) {
+					GWT.log(caught.getMessage());
+				}
+			});
+		} else {
+			// TODO Aqui é para o caso do user escolher juntar-se a outro jogo.
+			// É suposto ir buscar o id do jogo escolhido e atribui-lo
+		}
+
+		puzzleServiceAsync.getPuzzleView(cuttingName, new AsyncCallback<PuzzleView>() {
 			@Override
-			public void onSuccess(String result) {
-				workspaceId = result;
+			public void onSuccess(PuzzleView result) {
+				currentPuzzleView = result;
 			}
+
 			@Override
 			public void onFailure(Throwable caught) {
 				GWT.log(caught.getMessage());
 			}
 		});
-		
-		//TODO falta Inicializar puzzleLayout e puzzleView
+
+		puzzleServiceAsync.getCurrentLayout(cuttingName, new AsyncCallback<PuzzleLayout>() {
+			@Override
+			public void onSuccess(PuzzleLayout result) {
+				currentPuzzleLayout = result;
+			}
+
+			@Override
+			public void onFailure(Throwable caught) {
+				GWT.log(caught.getMessage());
+			}
+		});
+
+		initComplete = true;
+		solveComplete = false;
+
+		poolAndPaint();
+		//configureTimer();
 	}
 
-	private void configureTimer() {
+	/*private void configureTimer() {
 		new Timer() {
 			public void run() {
 				Date now = new Date();
@@ -76,6 +118,46 @@ public class PlayGame extends Composite {
 					drawPuzzle(null);
 			}
 		}.scheduleRepeating(POOL);
+	}*/
+
+	private void poolAndPaint() {
+
+		if (poolAndPaintTimer != null)
+			poolAndPaintTimer.cancel();
+
+		//poolAndPaintTimer = new Timer();
+		new Timer() {
+
+			@Override
+			public void run() {
+				if (solveComplete)
+					cancel();
+				else {
+					try {
+						puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
+							@Override
+							public void onSuccess(PuzzleLayout result) {
+								currentPuzzleLayout = result;
+								doublePaint();
+							}
+
+							@Override
+							public void onFailure(Throwable caught) {
+								GWT.log(caught.getMessage());							
+							}
+						});
+					} catch (MPJPException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}.scheduleRepeating(POOL);
+	}
+	
+	private void doublePaint() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private void configureCanvas() {
@@ -107,7 +189,6 @@ public class PlayGame extends Composite {
 		 * 
 		 * } });
 		 */
-
 	}
 
 }
