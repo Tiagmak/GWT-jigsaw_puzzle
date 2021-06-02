@@ -40,7 +40,7 @@ public class LeafTrie<T extends HasPoint> extends Trie<T> {
 	@Override
 	void collectNear(double x, double y, double radius, Set<T> points) {
 		for (T i : save) {
-			if (getDistance​(i.getX(), i.getY(), x, y) <= radius) {
+			if (getDistance(i.getX(), i.getY(), x, y) <= radius) {
 				points.add(i);
 			}
 		}

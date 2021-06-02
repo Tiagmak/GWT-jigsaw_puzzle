@@ -124,17 +124,13 @@ public class CreateGame extends Composite {
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-
+				
 				PlayGame playGame = null;
 				try {
-					playGame = new PlayGame(panels, managerService, 1, "imageName", "triangular", "2x2");
+					playGame = new PlayGame(panels, managerService, "exterior2.jpg", "triangular", 10, 10);
 				} catch (MPJPException e) {
 					e.printStackTrace();
 				}
-				// TODO ATENÇÃO!!! TIAGO esta treta do try e do datch é o ecipse que me obriga a
-				// fazer, senão para mudar de página faz-se como nas outras cenas... No outro
-				// trabalho fazer isto não tinha problema..
-
 				panels.add(playGame);
 				panels.showWidget(2);
 			}

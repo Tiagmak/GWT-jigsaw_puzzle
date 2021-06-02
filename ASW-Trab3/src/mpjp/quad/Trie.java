@@ -51,7 +51,7 @@ public abstract class Trie <T extends HasPoint> implements Element<T>{
 	 * @param y2 - y coordinate of second point
 	 * @return - distance between given points
 	 */
-	static double getDistance​(double x1, double y1, double x2, double y2) {
+	static double getDistance(double x1, double y1, double x2, double y2) {
 		return Math.hypot(x2-x1, y2-y1);
 	}
 	
@@ -91,7 +91,7 @@ public abstract class Trie <T extends HasPoint> implements Element<T>{
 	 * @param radius - of circle
 	 * @return - true if overlaps and false otherwise
 	 */
-	boolean overlaps​(double x, double y, double radius) {
+	boolean overlaps(double x, double y, double radius) {
 		double RectWidth = (x - Math.max(topLeftX, Math.min(x, bottomRightX)));
 		double RectHeight = (y - Math.max(bottomRightY, Math.min(y, topLeftY)));
 

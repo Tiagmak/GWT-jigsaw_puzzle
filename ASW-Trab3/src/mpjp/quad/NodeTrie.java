@@ -48,7 +48,7 @@ public class NodeTrie<T extends HasPoint> extends Trie<T>{
 	void collectNear(double x, double y, double radius, Set<T> points) {
 		for (Quadrant t : tries.keySet()) {
 			Trie<T> temp = tries.get(t);
-			if(temp != null && temp.overlaps​(x,y,radius)) {
+			if(temp != null && temp.overlaps(x,y,radius)) {
 				temp.collectNear(x, y, radius, points);
 			}		
 		}
