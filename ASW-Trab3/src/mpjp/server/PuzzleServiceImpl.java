@@ -9,6 +9,7 @@ import mpjp.shared.PuzzleSelectInfo;
 import mpjp.shared.PuzzleView;
 import mpjp.shared.geom.Point;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,8 +30,12 @@ public class PuzzleServiceImpl extends RemoteServiceServlet implements PuzzleSer
 	}
 
 	@Override
-	public Set<String> getAvailableImages() {
-		return Manager.getInstance().getAvailableCuttings();
+	public HashSet<String> getAvailableImages() {
+		HashSet<String> strings = new HashSet<>();
+		for (String s : Manager.getInstance().getAvailableImages()) {
+			strings.add(s);
+		}
+		return strings;
 	}
 
 	@Override

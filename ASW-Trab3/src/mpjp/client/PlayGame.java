@@ -52,7 +52,7 @@ public class PlayGame extends Composite {
 	PuzzleInfo puzzleInfo;
 	PuzzleLayout currentPuzzleLayout;
 	PuzzleView currentPuzzleView;
-	Workspace workspace;
+	//Workspace workspace;
 	int imageWidth;
 	int imageHeight;
 
@@ -63,7 +63,6 @@ public class PlayGame extends Composite {
 	Integer selectedId;
 	Integer selectedBlockId;
 	Point delta, diff;
-	ImageElement image = null;
 
 	/*
 	 * PlayGame(final DeckPanel panels, PuzzleInfo puzzleInfo, String workspaceId) {
@@ -110,7 +109,7 @@ public class PlayGame extends Composite {
 		MPJPResources.loadImageElement(imageName, i -> {
 			GWT.log("tentei1");
 
-			image = i;
+			ImageElement image = i;
 
 			/*imageWidth = image.getWidth();
 			imageHeight = image.getHeight();
@@ -128,7 +127,7 @@ public class PlayGame extends Composite {
 	}
 
 	private void initOtherStructures() {
-		workspace = new Workspace(puzzleInfo);
+		//TODO workspace = new Workspace(puzzleInfo);
 		gc = canvas.getContext2d();
 		try {
 			puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
@@ -161,86 +160,6 @@ public class PlayGame extends Composite {
 		} catch (MPJPException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private void mouseEvent() {
-		canvas.addMouseDownHandler(e -> {
-			mousePressed(e);
-		});
-		canvas.addMouseMoveHandler(e -> {
-			mouseDragged(e);
-		});
-		canvas.addMouseUpHandler(e -> {
-			mouseReleased(e);
-		});
-		timer();
-	}
-
-	void mousePressed(MouseDownEvent e) {
-		moving = true;
-		mousePosition = new Point(e.getX(),e.getY());	//start
-		Integer id = workspace.selectPiece(mousePosition);
-		
-		if(id == null)
-			selectedBlockId = null;
-		else {
-			PieceStatus piece = currentPuzzleLayout.getPieces().get(id);
-			selectedId = id;
-			selectedBlockId = piece.getBlock();
-			delta = new Point(0,0);
-			diff  = new Point(e.getX() - piece.getX(),e.getY() - piece.getY());
-			drawPuzzle();
-		}
-	}
-	
-	private void mouseDragged(MouseMoveEvent e) {
-		if(mousePosition != null) { 
-			int x = e.getX();
-			int y = e.getY();
-			
-			if(withinWorkspace(e.getX(), e.getY()))
-				delta = new Point(x - mousePosition.getX(), y - mousePosition.getY());
-			drawPuzzle();
-		}
-	}
-	
-	public void mouseReleased(MouseUpEvent e) {
-		moving = false;
-		if(selectedId != null) {
-			if(withinWorkspace(e.getX(), e.getY())) {
-				int blockCount = currentPuzzleLayout.getBlocks().size();
-				double x = e.getX() - diff.getX();
-				double y = e.getY() - diff.getY();
-				Point point = new Point(x,y);
-			
-				try {
-					puzzleServiceAsync.connect(workspaceId, POOL, mousePosition, new AsyncCallback<PuzzleLayout>() {
-						@Override
-						public void onSuccess(PuzzleLayout result) {
-							currentPuzzleLayout = result;
-							mousePosition = null;
-							selectedId = null;
-							selectedBlockId = null;
-						}
-
-						@Override
-						public void onFailure(Throwable caught) {
-							GWT.log(caught.getMessage());
-						}
-					});
-				} catch (Exception e1) {
-					// TODO: handle exception
-				}
-			}
-			drawPuzzle();
-		}
-	}
-	
-	private boolean withinWorkspace(int x, int y) {
-		int width  = (int) currentPuzzleView.getWorkspaceWidth();
-		int height = (int) currentPuzzleView.getWorkspaceHeight(); 
-		
-		return x >= 0 && x <= width && y >= 0 && y <= height;
 	}
 
 
@@ -277,93 +196,11 @@ public class PlayGame extends Composite {
 
 		}.scheduleRepeating(POOL);
 	}
-
-	private void drawPuzzle() {
-		if(solveComplete) 
-			paintFinal();
-		else if(currentPuzzleLayout.isSolved()) {
-			solveComplete = true;
-			animateSolvedPuzzle(); 
-		} else 
-			paintBlocks();
-	}
-
-	private void animateSolvedPuzzle() {
-		//TODO Preencher isto ???
+	
+	void drawPuzzle() {
+		
 	}
 	
-	private void paintFinal() {
-		int totalWidth  = (int) currentPuzzleView.getWorkspaceWidth();
-		int totalHeight = (int) currentPuzzleView.getWorkspaceHeight();
-		
-		/*if(image == null) {  //TODO Fazer isto
-			//gc.setColor(Color.WHITE);
-			//gc.fillRect(0,0,totalWidth,totalHeight);
-		} else
-			//gc.drawImage(image,0,0,totalWidth,totalHeight,this);  */
-	}
-
-	private void paintBlocks() {
-		Map<Integer, List<Integer>> blocks = currentPuzzleLayout.getBlocks();
-		
-		for (int blockId : blocks.keySet()) {
-			if (selectedBlockId != null && blockId == selectedBlockId)
-				continue;
-			paintBlock(blocks.get(blockId), false);
-		}
-
-		if (selectedBlockId != null)
-			paintBlock(blocks.get(selectedBlockId), true);
-
-		showFooter();
-	}
-	
-	private void paintBlock(List<Integer> pieceIDs, boolean dragging) {
-		//AffineTransform initialTransform = gc.getTransform();		//TODO ????
-		try {
-			if(dragging)
-				for(int id: pieceIDs) {
-					//gc.translate(SHADE_SIZE,SHADE_SIZE);
-					paintPiece(id,dragging,true);
-					//gc.setTransform(initialTransform);
-				}
-		
-			for(int id: pieceIDs) {
-				paintPiece(id,dragging,false);
-			}
-		} catch(RuntimeException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	void paintPiece(int id,boolean dragging,boolean shading) {
-		Shape shape;  /*= ShapeChanger.getShape(currentPuzzleView.getPieceShape(id));*/ ///??
-		Map<Integer, PieceStatus> pieces = currentPuzzleLayout.getPieces();
-		PieceStatus pieceStatus = pieces.get(id);
-		Point center =  pieceStatus.getPosition();
-		double rotation = pieceStatus.getRotation();
-
-		if(dragging)
-			gc.translate(delta.getX(),delta.getY());
-		gc.translate(center.getX(),center.getY());
-		gc.rotate(rotation);
-		
-		/*if(shading)
-			paintShade(shape);
-		else if(image == null) 
-			paintPieceWithLabel(g2,id,shape);
-		else 
-			paintPieceWithImage(g2,id,shape);*/
-	}
-	
-	private void paintShade(Shape shape) {
-		/*gc.setShadowColor(Color.DARK_GRAY);		//????
-		gc.fill(shape);*/
-	}
-
-	private void showFooter() {
-		//TODO Esta função vai mostrar a percentagem resolvida e o tempo que a pessoa demorou	
-	}
-
-
 }
+
+
