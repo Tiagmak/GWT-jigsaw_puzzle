@@ -1,6 +1,7 @@
 package mpjp.client;
 
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,7 +37,7 @@ public interface PuzzleService extends RemoteService{
 	 * A set of images available for puzzle backgrounds
 	 * @return
 	 */
-	Set<String> getAvailableImages();
+	HashSet<String> getAvailableImages();
 
 	/**
 	 * A map of workspace IDs (int) to PuzzleSelectInfo. The IDs must be used to identify the intended workspace to use them 

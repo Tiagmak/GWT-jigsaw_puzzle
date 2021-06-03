@@ -18,21 +18,6 @@ public class ASW_Trab3 implements EntryPoint {
 
 		panels.add(initialPanel);
 
-		// Para fazer um pedido ao servidor
-		/*
-		 * managerService.getAvailableCuttings(new AsyncCallback<Set<String>>() {
-		 * 
-		 * @Override public void onSuccess(Set<String> result) { // TODO Auto-generated
-		 * method stub
-		 * 
-		 * }
-		 * 
-		 * @Override public void onFailure(Throwable caught) { // TODO Auto-generated
-		 * method stub
-		 * 
-		 * } });
-		 */
-
 		panels.showWidget(0);
 
 		RootPanel.get("game").add(panels);

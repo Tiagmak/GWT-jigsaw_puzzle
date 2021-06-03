@@ -8,7 +8,7 @@ public class Images {
 	static Set<String> extensions;
 	static File imageDirectory;
 	
-	private static final String MPJP_RESOURCES = "test/mpjp/resources";
+	private static final String MPJP_RESOURCES = "test/mpjp/resources/";
 
 	/**
 	 * Current set of valid extensions
@@ -51,11 +51,17 @@ public class Images {
 	 * A set of image names that can be used in MPJP jigsaw puzzles
 	 * @return set
 	 */
-	static Set<String> getAvailableImages() {	
-		Set<String> availableImages = new HashSet<>();
-		for (File fileEntry : getImageDirectory().listFiles()) {
-			availableImages.add(fileEntry.getName());
+	static Set<String> getAvailableImages() {
+		Set<String> tmp = new HashSet<>();
+
+		for (File f : getImageDirectory().listFiles()) {
+			String name = f.getName();
+			for (String s : getExtensions()) {
+				if (name.endsWith(s)) {
+					tmp.add(name);
+				}
+			}
 		}
-		return availableImages;
+		return tmp;
 	}
 }

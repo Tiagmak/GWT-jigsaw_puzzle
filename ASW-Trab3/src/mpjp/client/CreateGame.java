@@ -1,11 +1,13 @@
 package mpjp.client;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.canvas.dom.client.Context2d;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -21,6 +23,7 @@ import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -66,15 +69,27 @@ public class CreateGame extends Composite {
 	CreateGame(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
 
-		/*
-		 * Canvas canvas = Canvas.createIfSupported(); final Context2d context2d =
-		 * canvas.getContext2d();
-		 * 
-		 * MPJPResources.loadImageElement("exterior2.jpg", i -> { image = i;
-		 * context2d.drawImage(image, 50, 50); });
-		 * 
-		 * imagesPanel.add(i);
-		 */
+		final ListBox dropBox = new ListBox();
+		dropBox.setMultipleSelect(false);
+		GWT.log(DEBUG_ID_PREFIX);
+		dropBox.addAttachHandler(e -> {
+			managerService.getAvailableImages(new AsyncCallback<HashSet<String>>() {
+				@Override
+				public void onSuccess(HashSet<String> result) {
+					for (String string : result) {
+						dropBox.addItem(string);
+					}
+				}
+
+				@Override
+				public void onFailure(Throwable caught) {
+					GWT.log(DEBUG_ID_PREFIX);
+				}
+			});
+		});
+		
+		imagesPanel.add(dropBox);
+		
 		cuttingsPanel.setSpacing(55);
 		cuttingsPanel.add(cuttingRoundButton);
 		cuttingsPanel.add(cuttingStraightButton);
@@ -127,7 +142,7 @@ public class CreateGame extends Composite {
 				
 				PlayGame playGame = null;
 				try {
-					playGame = new PlayGame(panels, managerService, "exterior2.jpg", "triangular", 10, 10);
+					playGame = new PlayGame(panels, managerService, "exterior2.jpg", "Triangular", 10, 10);
 				} catch (MPJPException e) {
 					e.printStackTrace();
 				}

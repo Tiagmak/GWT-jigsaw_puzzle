@@ -1,5 +1,6 @@
 package mpjp.client;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ public interface PuzzleServiceAsync {
 	 * A set of images available for puzzle backgrounds
 	 * @return
 	 */
-	void getAvailableImages(AsyncCallback<Set<String>> callback);
+	void getAvailableImages(AsyncCallback<HashSet<String>> callback);
 
 	/**
 	 * A map of workspace IDs (int) to PuzzleSelectInfo. The IDs must be used to identify the intended workspace to use them 

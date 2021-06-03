@@ -19,6 +19,7 @@ public class CuttingFactoryImplementation implements CuttingFactory{
 	@Override
 	public Cutting createCutting(String name) throws MPJPException {
 		Cutting cutting;
+		System.out.println(name);
 		switch (name) {
 		case "Round": {
 			cutting = new RoundCutting();

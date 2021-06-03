@@ -86,32 +86,39 @@ public class PlayGame extends Composite {
 		initWidget(allPanels);
 		initWorkspace(imageName, cuttingName, rows, columns);
 
-		/*
-		 * puzzleServiceAsync.createWorkspace(puzzleInfo, new AsyncCallback<String>() {
-		 * 
-		 * @Override public void onSuccess(String result) { workspaceId = result;
-		 * initOtherStructures();
-		 * 
-		 * if(workspaceId != null && currentPuzzleLayout != null && currentPuzzleView !=
-		 * null) initComplete = true; solveComplete = false;
-		 * 
-		 * }
-		 * 
-		 * @Override public void onFailure(Throwable caught) {
-		 * GWT.log(caught.getMessage()); } });
-		 */
-		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-		allPanels.add(canvas);
+		puzzleServiceAsync.createWorkspace(puzzleInfo, new AsyncCallback<String>() {
+
+			@Override
+			public void onSuccess(String result) {
+				workspaceId = result;
+				//initOtherStructures(workspaceId);
+
+				if (workspaceId != null && currentPuzzleLayout != null && currentPuzzleView != null)
+					initComplete = true;
+				solveComplete = false;
+				
+				GWT.log("Passei aqui");
+				allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+				allPanels.add(canvas);
+			}
+
+			@Override
+			public void onFailure(Throwable caught) {
+				GWT.log(caught.getMessage());
+			}
+		});
+
 	}
 
 	private void initWorkspace(String imageName, String cuttingName, int rows, int columns) throws MPJPException {
 		GWT.log("tentei0");
+		puzzleInfo = new PuzzleInfo();
 		MPJPResources.loadImageElement(imageName, i -> {
 			GWT.log("tentei1");
 
 			ImageElement image = i;
 
-			/*imageWidth = image.getWidth();
+			imageWidth = image.getWidth();
 			imageHeight = image.getHeight();
 			GWT.log("tentei2");
 
@@ -121,12 +128,17 @@ public class PlayGame extends Composite {
 			Context2d context2d = canvas.getContext2d();
 			context2d.drawImage(image, 0, 0, imageWidth, imageHeight);
 
-			puzzleInfo = new PuzzleInfo(imageName, cuttingName, rows, columns, imageWidth, imageHeight);*/
-			
+			//puzzleInfo = new PuzzleInfo(imageName, cuttingName, rows, columns, imageWidth, imageHeight);
+			puzzleInfo.setImageName(imageName);
+			puzzleInfo.setCuttingName(cuttingName);
+			puzzleInfo.setColumns(columns);
+			puzzleInfo.setRows(rows);
+			puzzleInfo.setHeight(imageHeight);
+			puzzleInfo.setWidth(imageWidth);
 		});
 	}
 
-	private void initOtherStructures() {
+	private void initOtherStructures(String workspaceId) {
 		//TODO workspace = new Workspace(puzzleInfo);
 		gc = canvas.getContext2d();
 		try {
@@ -134,27 +146,26 @@ public class PlayGame extends Composite {
 				@Override
 				public void onSuccess(PuzzleView result) {
 					currentPuzzleView = result;
+					try {
+						puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
+							@Override
+							public void onSuccess(PuzzleLayout result) {
+								currentPuzzleLayout = result;
+							}
+
+							@Override
+							public void onFailure(Throwable caught) {
+								GWT.log(caught.getMessage());
+							}
+						});
+					} catch (MPJPException e) {
+						e.printStackTrace();
+					}
 				}
 
 				@Override
 				public void onFailure(Throwable caught) {
 					GWT.log(caught.getMessage());
-				}
-			});
-		} catch (MPJPException e) {
-			e.printStackTrace();
-		}
-		try {
-			puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
-				@Override
-				public void onSuccess(PuzzleLayout result) {
-					currentPuzzleLayout = result;
-				}
-
-				@Override
-				public void onFailure(Throwable caught) {
-					GWT.log(caught.getMessage());
-
 				}
 			});
 		} catch (MPJPException e) {
@@ -163,7 +174,7 @@ public class PlayGame extends Composite {
 	}
 
 
-	private void timer() {
+	/*private void timer() {
 		new Timer() {
 			@Override
 			public void run() {
@@ -195,7 +206,7 @@ public class PlayGame extends Composite {
 			}
 
 		}.scheduleRepeating(POOL);
-	}
+	}*/
 	
 	void drawPuzzle() {
 		
