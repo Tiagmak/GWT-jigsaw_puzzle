@@ -338,7 +338,7 @@ public class Workspace implements Serializable {
 	 * @param point  - on the piece
 	 * @return id of the piece near the given endPoint with highest block number, or null if none is selected
 	 */
-	Integer selectPiece(Point point) {
+	public Integer selectPiece(Point point) {
 		List<Integer> piecesSelected = new ArrayList<>();
 
         for (Integer id : pieces.keySet()) {
