@@ -3,6 +3,8 @@ package mpjp.game.cuttings;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.gwt.core.client.GWT;
+
 import mpjp.shared.MPJPException;
 
 public class CuttingFactoryImplementation implements CuttingFactory{
@@ -19,7 +21,6 @@ public class CuttingFactoryImplementation implements CuttingFactory{
 	@Override
 	public Cutting createCutting(String name) throws MPJPException {
 		Cutting cutting;
-		System.out.println(name);
 		switch (name) {
 		case "Round": {
 			cutting = new RoundCutting();

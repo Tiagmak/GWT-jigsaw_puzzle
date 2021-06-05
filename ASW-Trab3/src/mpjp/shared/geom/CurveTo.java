@@ -1,6 +1,12 @@
 package mpjp.shared.geom;
 
-public class CurveTo implements Segment{
+import java.io.Serializable;
+
+public class CurveTo implements Segment, Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * controlPoint1 - First control point in this Bezier line
 	 * controlPoint2 - Second control point in this Bezier line

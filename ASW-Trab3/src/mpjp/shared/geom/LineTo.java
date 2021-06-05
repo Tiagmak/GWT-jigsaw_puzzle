@@ -1,6 +1,10 @@
 package mpjp.shared.geom;
 
-public class LineTo implements Segment{
+import java.io.Serializable;
+
+public class LineTo implements Segment, Serializable{
+
+	private static final long serialVersionUID = 1L;
 	/**
 	 * End point in this line segment
 	 */

@@ -1,6 +1,7 @@
 package mpjp.client;
 
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,7 @@ public interface PuzzleService extends RemoteService{
 	 * A set of cutting names available to produce puzzle pieces
 	 * @return set of images
 	 */
-	Set<String> getAvailableCuttings();
+	HashSet<String> getAvailableCuttings();
 
 	/**
 	 * A set of images available for puzzle backgrounds
@@ -44,7 +45,7 @@ public interface PuzzleService extends RemoteService{
 	 * with methods such as getPuzzleView(String), getCurrentLayout(String), selectPiece(String, Point), and connect(String, int, Point)
 	 * @return map
 	 */
-	Map<String, PuzzleSelectInfo> getAvailableWorkspaces();
+	HashMap<String, PuzzleSelectInfo> getAvailableWorkspaces();
 
 	/**
 	 * Current layout of the workspace with given ID

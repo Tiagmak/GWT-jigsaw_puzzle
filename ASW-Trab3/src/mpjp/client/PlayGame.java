@@ -64,18 +64,28 @@ public class PlayGame extends Composite {
 	Integer selectedBlockId;
 	Point delta, diff;
 
-	/*
-	 * PlayGame(final DeckPanel panels, PuzzleInfo puzzleInfo, String workspaceId) {
-	 * if (canvas == null) { initWidget(new Label("Canvas not supported")); return;
-	 * } initWidget(allPanels); this.puzzleInfo = puzzleInfo; this.workspaceId =
-	 * workspaceId; initOtherStructures();
-	 * 
-	 * if(workspaceId != null && currentPuzzleLayout != null && currentPuzzleView !=
-	 * null) initComplete = true; solveComplete = false;
-	 * 
-	 * allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-	 * allPanels.add(canvas); }
-	 */
+	
+	PlayGame(final DeckPanel panels, PuzzleInfo puzzleInfo, String workspaceId) {
+		if (canvas == null) {
+			initWidget(new Label("Canvas not supported"));
+			return;
+		}
+		initWidget(allPanels);
+		this.puzzleInfo = puzzleInfo;
+		this.workspaceId = workspaceId;
+		
+		initStructureToJoinOption();
+		
+
+		if (workspaceId != null && currentPuzzleLayout != null && currentPuzzleView != null)
+			initComplete = true;
+		solveComplete = false;
+
+		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		allPanels.add(canvas);
+	}
+	 
+
 
 	PlayGame(final DeckPanel panels, final PuzzleServiceAsync managerService, String imageName, String cuttingName,
 			int rows, int columns) throws MPJPException {
@@ -84,75 +94,51 @@ public class PlayGame extends Composite {
 			return;
 		}
 		initWidget(allPanels);
+
 		initWorkspace(imageName, cuttingName, rows, columns);
 
-		puzzleServiceAsync.createWorkspace(puzzleInfo, new AsyncCallback<String>() {
-
-			@Override
-			public void onSuccess(String result) {
-				workspaceId = result;
-				//initOtherStructures(workspaceId);
-
-				if (workspaceId != null && currentPuzzleLayout != null && currentPuzzleView != null)
-					initComplete = true;
-				solveComplete = false;
-				
-				GWT.log("Passei aqui");
-				allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-				allPanels.add(canvas);
-			}
-
-			@Override
-			public void onFailure(Throwable caught) {
-				GWT.log(caught.getMessage());
-			}
-		});
-
+		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		allPanels.add(canvas);
 	}
 
 	private void initWorkspace(String imageName, String cuttingName, int rows, int columns) throws MPJPException {
-		GWT.log("tentei0");
-		puzzleInfo = new PuzzleInfo();
-		MPJPResources.loadImageElement(imageName, i -> {
-			GWT.log("tentei1");
-
-			ImageElement image = i;
-
-			imageWidth = image.getWidth();
-			imageHeight = image.getHeight();
-			GWT.log("tentei2");
-
-			canvas.setVisible(true);
-			canvas.setCoordinateSpaceHeight(imageHeight);
-			canvas.setCoordinateSpaceWidth(imageWidth);
-			Context2d context2d = canvas.getContext2d();
-			context2d.drawImage(image, 0, 0, imageWidth, imageHeight);
-
-			//puzzleInfo = new PuzzleInfo(imageName, cuttingName, rows, columns, imageWidth, imageHeight);
-			puzzleInfo.setImageName(imageName);
-			puzzleInfo.setCuttingName(cuttingName);
-			puzzleInfo.setColumns(columns);
-			puzzleInfo.setRows(rows);
-			puzzleInfo.setHeight(imageHeight);
-			puzzleInfo.setWidth(imageWidth);
-		});
-	}
-
-	private void initOtherStructures(String workspaceId) {
-		//TODO workspace = new Workspace(puzzleInfo);
 		gc = canvas.getContext2d();
-		try {
-			puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
-				@Override
-				public void onSuccess(PuzzleView result) {
-					currentPuzzleView = result;
-					try {
-						puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
-							@Override
-							public void onSuccess(PuzzleLayout result) {
-								currentPuzzleLayout = result;
-							}
+		puzzleInfo = new PuzzleInfo(imageName, cuttingName, rows, columns, 500, 500);
 
+		try {
+			puzzleServiceAsync.createWorkspace(puzzleInfo, new AsyncCallback<String>() {
+				@Override
+				public void onSuccess(String result) {
+					GWT.log("workspace com sucesso");
+					GWT.log(result);
+					GWT.log("" + puzzleInfo.getWidth());
+
+					workspaceId = result;
+					try {
+						puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
+							@Override
+							public void onSuccess(PuzzleView result2) {
+								GWT.log("puzzleView com sucesso");
+								currentPuzzleView = result2;
+								try {
+									puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
+										@Override
+										public void onSuccess(PuzzleLayout result) {
+											currentPuzzleLayout = result;
+											if (workspaceId != null && currentPuzzleLayout != null && currentPuzzleView != null)
+												initComplete = true;
+											solveComplete = false;
+											GWT.log("puzzleLayout com sucesso");
+										}
+										@Override
+										public void onFailure(Throwable caught) {
+											GWT.log(caught.getMessage());
+										}
+									});
+								} catch (MPJPException e) {
+									e.printStackTrace();
+								}
+							}
 							@Override
 							public void onFailure(Throwable caught) {
 								GWT.log(caught.getMessage());
@@ -173,8 +159,46 @@ public class PlayGame extends Composite {
 		}
 	}
 
+	
+	private void initStructureToJoinOption() {
+		gc = canvas.getContext2d();
 
-	/*private void timer() {
+		try {
+			puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
+				@Override
+				public void onSuccess(PuzzleView result2) {
+					GWT.log("puzzleView com sucesso");
+					currentPuzzleView = result2;
+					try {
+						puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
+							@Override
+							public void onSuccess(PuzzleLayout result) {
+								currentPuzzleLayout = result;
+								if (workspaceId != null && currentPuzzleLayout != null && currentPuzzleView != null)
+									initComplete = true;
+								solveComplete = false;
+								GWT.log("puzzleLayout com sucesso");
+							}
+							@Override
+							public void onFailure(Throwable caught) {
+								GWT.log(caught.getMessage());
+							}
+						});
+					} catch (MPJPException e) {
+						e.printStackTrace();
+					}
+				}
+				@Override
+				public void onFailure(Throwable caught) {
+					GWT.log(caught.getMessage());
+				}
+			});
+		} catch (MPJPException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void timer() {
 		new Timer() {
 			@Override
 			public void run() {
@@ -206,10 +230,186 @@ public class PlayGame extends Composite {
 			}
 
 		}.scheduleRepeating(POOL);
-	}*/
+	}
 	
-	void drawPuzzle() {
+	private void mouseEvent() {
+		canvas.addMouseDownHandler(e -> {
+			mousePressed(e);
+		});
+		canvas.addMouseMoveHandler(e -> {
+			mouseDragged(e);
+		});
+		canvas.addMouseUpHandler(e -> {
+			mouseReleased(e);
+		});
+		timer();
+	}
+
+	void mousePressed(MouseDownEvent e) {
+		moving = true;
+		mousePosition = new Point(e.getX(),e.getY());	//start
 		
+		try {
+			puzzleServiceAsync.selectPiece(workspaceId, mousePosition, new AsyncCallback<Integer>() {
+				@Override
+				public void onSuccess(Integer result) {
+					Integer id = result;
+					if(id == null)
+						selectedBlockId = null;
+					else {
+						PieceStatus piece = currentPuzzleLayout.getPieces().get(id);
+						selectedId = id;
+						selectedBlockId = piece.getBlock();
+						delta = new Point(0,0);
+						diff  = new Point(e.getX() - piece.getX(),e.getY() - piece.getY());
+						drawPuzzle();
+					}
+				}
+				@Override
+				public void onFailure(Throwable caught) {
+					GWT.log(caught.getMessage());
+				}
+			});
+		} catch (MPJPException e1) {
+			e1.printStackTrace();
+		}
+	}
+	
+	private void mouseDragged(MouseMoveEvent e) {
+		if(mousePosition != null) { 
+			int x = e.getX();
+			int y = e.getY();
+			
+			if(withinWorkspace(e.getX(), e.getY()))
+				delta = new Point(x - mousePosition.getX(), y - mousePosition.getY());
+			drawPuzzle();
+		}
+	}
+	
+	public void mouseReleased(MouseUpEvent e) {
+		moving = false;
+		if(selectedId != null) {
+			if(withinWorkspace(e.getX(), e.getY())) {
+				int blockCount = currentPuzzleLayout.getBlocks().size();
+				double x = e.getX() - diff.getX();
+				double y = e.getY() - diff.getY();
+				Point point = new Point(x,y);
+			
+				try {
+					puzzleServiceAsync.connect(workspaceId, POOL, mousePosition, new AsyncCallback<PuzzleLayout>() {
+						@Override
+						public void onSuccess(PuzzleLayout result) {
+							currentPuzzleLayout = result;
+							mousePosition = null;
+							selectedId = null;
+							selectedBlockId = null;
+						}
+
+						@Override
+						public void onFailure(Throwable caught) {
+							GWT.log(caught.getMessage());
+						}
+					});
+				} catch (Exception e1) {
+					// TODO: handle exception
+				}
+			}
+			drawPuzzle();
+		}
+	}
+	
+	private boolean withinWorkspace(int x, int y) {
+		int width  = (int) currentPuzzleView.getWorkspaceWidth();
+		int height = (int) currentPuzzleView.getWorkspaceHeight(); 
+		
+		return x >= 0 && x <= width && y >= 0 && y <= height;
+	}
+	
+	private void drawPuzzle() {
+		if(solveComplete) 
+			paintFinal();
+		else if(currentPuzzleLayout.isSolved()) {
+			solveComplete = true;
+			animateSolvedPuzzle(); 
+		} else 
+			paintBlocks();
+	}
+
+	private void animateSolvedPuzzle() {
+		//TODO Preencher isto ???
+	}
+	
+	private void paintFinal() {
+		int totalWidth  = (int) currentPuzzleView.getWorkspaceWidth();
+		int totalHeight = (int) currentPuzzleView.getWorkspaceHeight();
+		
+		/*if(image == null) {  //TODO Fazer isto
+			//gc.setColor(Color.WHITE);
+			//gc.fillRect(0,0,totalWidth,totalHeight);
+		} else
+			//gc.drawImage(image,0,0,totalWidth,totalHeight,this);  */
+	}
+
+	private void paintBlocks() {
+		Map<Integer, List<Integer>> blocks = currentPuzzleLayout.getBlocks();
+		
+		for (int blockId : blocks.keySet()) {
+			if (selectedBlockId != null && blockId == selectedBlockId)
+				continue;
+			paintBlock(blocks.get(blockId), false);
+		}
+
+		if (selectedBlockId != null)
+			paintBlock(blocks.get(selectedBlockId), true);
+
+		showFooter();
+	}
+	
+	private void paintBlock(List<Integer> pieceIDs, boolean dragging) {
+		//AffineTransform initialTransform = gc.getTransform();		//TODO ????
+		try {
+			if(dragging)
+				for(int id: pieceIDs) {
+					//gc.translate(SHADE_SIZE,SHADE_SIZE);
+					paintPiece(id,dragging,true);
+					//gc.setTransform(initialTransform);
+				}
+		
+			for(int id: pieceIDs) {
+				paintPiece(id,dragging,false);
+			}
+		} catch(RuntimeException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	void paintPiece(int id,boolean dragging,boolean shading) {
+		Shape shape;  /*= ShapeChanger.getShape(currentPuzzleView.getPieceShape(id));*/ ///??
+		Map<Integer, PieceStatus> pieces = currentPuzzleLayout.getPieces();
+		PieceStatus pieceStatus = pieces.get(id);
+		Point center =  pieceStatus.getPosition();
+		double rotation = pieceStatus.getRotation();
+
+		if(dragging)
+			gc.translate(delta.getX(),delta.getY());
+		gc.translate(center.getX(),center.getY());
+		gc.rotate(rotation);
+		
+		/*if(shading)
+			paintShade(shape);
+		else if(image == null) 
+			paintPieceWithLabel(g2,id,shape);
+		else 
+			paintPieceWithImage(g2,id,shape);*/
+	}
+	
+	private void paintShade(Shape shape) {
+		/*gc.setShadowColor(Color.DARK_GRAY);		//????
+		gc.fill(shape);*/
+	}
+
+	private void showFooter() {
+		//TODO Esta função vai mostrar a percentagem resolvida e o tempo que a pessoa demorou	
 	}
 	
 }

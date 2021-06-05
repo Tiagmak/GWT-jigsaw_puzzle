@@ -1,6 +1,9 @@
 package mpjp.shared.geom;
 
-public class QuadTo implements Segment{
+import java.io.Serializable;
+
+public class QuadTo implements Segment, Serializable{
+	private static final long serialVersionUID = 1L;
 	/**
 	 * controlPoint - Create point at origin
 	 * endPoint - The end point of this quadratic curve segment

@@ -1,9 +1,12 @@
 package mpjp.shared.geom;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PieceShape implements Segment{
+public class PieceShape implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 	Point startPoint;
 	List<Segment> segments;
 	

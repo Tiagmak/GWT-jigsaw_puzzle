@@ -12,8 +12,10 @@ import mpjp.shared.PuzzleView;
 import mpjp.shared.geom.Point;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
@@ -47,8 +49,12 @@ public class PuzzleServiceImpl extends RemoteServiceServlet implements PuzzleSer
 	}
 
 	@Override
-	public Set<String> getAvailableCuttings() {
-		return Manager.getInstance().getAvailableCuttings();
+	public HashSet<String> getAvailableCuttings() {
+		HashSet<String> strings = new HashSet<>();
+		for (String s :  Manager.getInstance().getAvailableCuttings()) {
+			strings.add(s);
+		}
+		return strings;
 	}
 
 	@Override
@@ -61,8 +67,12 @@ public class PuzzleServiceImpl extends RemoteServiceServlet implements PuzzleSer
 	}
 
 	@Override
-	public Map<String, PuzzleSelectInfo> getAvailableWorkspaces() {
-		return Manager.getInstance().getAvailableWorkspaces();
+	public HashMap<String, PuzzleSelectInfo> getAvailableWorkspaces() {
+		HashMap<String, PuzzleSelectInfo> strings = new HashMap<>();
+		for (Entry<String, PuzzleSelectInfo> s : Manager.getInstance().getAvailableWorkspaces().entrySet()) {
+			strings.put(s.getKey(), s.getValue());
+		}
+		return strings;
 	}
 
 	@Override

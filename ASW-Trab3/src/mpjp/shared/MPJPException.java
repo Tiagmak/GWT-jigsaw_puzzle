@@ -20,7 +20,7 @@ public class MPJPException extends Exception{
 	}
 	
 	public MPJPException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace){
-		super(message, cause, enableSuppression, writableStackTrace);
+		//super(message, cause, enableSuppression, writableStackTrace);
 	}
 	
 	public MPJPException(Throwable cause){

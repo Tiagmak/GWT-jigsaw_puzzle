@@ -1,5 +1,6 @@
 package mpjp.client;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,7 @@ public interface PuzzleServiceAsync {
 	 * A set of cutting names available to produce puzzle pieces
 	 * @return set of images
 	 */
-	void getAvailableCuttings(AsyncCallback<Set<String>> callback);
+	void getAvailableCuttings(AsyncCallback<HashSet<String>> callback);
 
 	/**
 	 * A set of images available for puzzle backgrounds
@@ -43,7 +44,7 @@ public interface PuzzleServiceAsync {
 	 * with methods such as getPuzzleView(String), getCurrentLayout(String), selectPiece(String, Point), and connect(String, int, Point)
 	 * @return map
 	 */
-	void getAvailableWorkspaces(AsyncCallback<Map<String, PuzzleSelectInfo>> callback);
+	void getAvailableWorkspaces(AsyncCallback<HashMap<String, PuzzleSelectInfo>> callback);
 
 	/**
 	 * Current layout of the workspace with given ID
