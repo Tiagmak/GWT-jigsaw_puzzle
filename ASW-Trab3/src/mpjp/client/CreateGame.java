@@ -88,36 +88,46 @@ public class CreateGame extends Composite {
 			});
 		});
 		//////////////////////////////////////////////////////////////////////////////////
-		final ListBox dropBoxcuttings = new ListBox();
-		dropBoxcuttings.setMultipleSelect(false);
+		final ListBox dropBoxCuttings = new ListBox();
+		dropBoxCuttings.setMultipleSelect(false);
 		GWT.log(DEBUG_ID_PREFIX);
-		dropBoxcuttings.addAttachHandler(e -> {
-		//String eceec = new String();
-		managerService.getAvailableCuttings(new AsyncCallback<HashSet<String>>() {
+		dropBoxCuttings.addAttachHandler(e -> {
+			managerService.getAvailableCuttings(new AsyncCallback<HashSet<String>>() {
 
-			@Override
-			public void onSuccess(HashSet<String> result) {
-				for (String string : result) {
-					dropBoxcuttings.addItem(string);
-					
+				@Override
+				public void onSuccess(HashSet<String> result) {
+					for (String string : result) {
+						dropBoxCuttings.addItem(string);
+
+					}
 				}
-			}
-		
-			@Override
-			public void onFailure(Throwable caught) {
-				// TODO Auto-generated method stub
-				GWT.log(DEBUG_ID_PREFIX);
-			}
+
+				@Override
+				public void onFailure(Throwable caught) {
+					// TODO Auto-generated method stub
+					GWT.log(DEBUG_ID_PREFIX);
+				}
+			});
 		});
+		
+		
+		final ListBox dropBoxDimension = new ListBox();
+		dropBoxDimension.setMultipleSelect(false);
+		GWT.log(DEBUG_ID_PREFIX);
+		dropBoxDimension.addAttachHandler(e -> {
+						dropBoxDimension.addItem("1x2");
+						dropBoxDimension.addItem("2x1");
+						dropBoxDimension.addItem("5x5");
+						dropBoxDimension.addItem("8x9");
+						dropBoxDimension.addItem("10x10");
 		});
 		
 		
 		
-			
 		imagesPanel.add(dropBox);
 		
 		cuttingsPanel.setSpacing(55);
-		cuttingsPanel.add(dropBoxcuttings);
+		cuttingsPanel.add(dropBoxCuttings);
 		//cuttingsPanel.add(cuttingRoundButton);
 		//cuttingsPanel.add(cuttingStraightButton);
 		//cuttingsPanel.add(cuttingTriangularButton);
@@ -125,15 +135,16 @@ public class CreateGame extends Composite {
 		//cuttingRoundButton.setValue(true);
 
 		dimensionPanel.setSpacing(55);
-		dimensionPanel.add(dimension1x2Button);
-		dimensionPanel.add(dimension2x1Button);
-		dimensionPanel.add(dimension5x5Button);
-		dimensionPanel.add(dimension8x9Button);
-		dimensionPanel.add(dimension10x10Button);
-		dimensionPanel.add(dimension14x15Button);
-		dimension1x2Button.setValue(true);
-
-		buttonsPanel.setSpacing(35);
+		//dimensionPanel.add(dimension1x2Button);
+		//dimensionPanel.add(dimension2x1Button);
+		//dimensionPanel.add(dimension5x5Button);
+		//dimensionPanel.add(dimension8x9Button);
+		//dimensionPanel.add(dimension10x10Button);
+		//dimensionPanel.add(dimension14x15Button);
+		//dimension1x2Button.setValue(true);
+		dimensionPanel.add(dropBoxDimension);
+		
+				buttonsPanel.setSpacing(35);
 		buttonsPanel.add(buttonBack);
 		buttonsPanel.add(buttonPlayGame);
 
@@ -172,7 +183,7 @@ public class CreateGame extends Composite {
 				PlayGame playGame = null;
 				try {
 					String imageName         = dropBox.getValue(dropBox.getSelectedIndex());
-					String imageNamecuttings = dropBoxcuttings.getValue(dropBoxcuttings.getSelectedIndex());
+					String imageNamecuttings = dropBoxCuttings.getValue(dropBoxCuttings.getSelectedIndex());
 					GWT.log("imageName : " + imageName);
 					GWT.log("imageNamecuttings: "+imageNamecuttings);
 					playGame = new PlayGame(panels, managerService, imageName, imageNamecuttings, 10, 10);
