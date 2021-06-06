@@ -21,19 +21,22 @@ class InitialPanel extends Composite {
 	Button buttonJoinGame = new Button("Join a new game");
 	Button buttonCreateNewGame = new Button("Create a new game");
 
+	/**
+	 * Paint initial Panel
+	 * @param panels
+	 * @param managerService
+	 */
 	InitialPanel(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
 
-		//optionsPanel.addStyleName("optionsPanel");
-		optionsPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-
-		//buttonJoinGame.addStyleName("button");
-		//buttonCreateNewGame.addStyleName("button");
+		buttonJoinGame.addStyleName("designButtons");
+		buttonCreateNewGame.addStyleName("designButtons");
+		optionsPanel.setSpacing(30);
 		optionsPanel.add(buttonJoinGame);
 		optionsPanel.add(buttonCreateNewGame);
 
+		centralPanel.addStyleName("centralInitialPanel");
 		centralPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-		centralPanel.addStyleName("centralPanel");
 		ask.addStyleName("ask");
 		centralPanel.add(ask);
 		centralPanel.add(optionsPanel);
@@ -43,6 +46,10 @@ class InitialPanel extends Composite {
 		allPanels.add(title);
 		allPanels.add(centralPanel);
 
+		/**
+		 * Activate when user click on buttonJoinGame
+		 * @param event
+		 */
 		buttonJoinGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -52,6 +59,10 @@ class InitialPanel extends Composite {
 			}
 		});
 
+		/**
+		 * Activate when user click on buttonCreateNewGame
+		 * @param event
+		 */
 		buttonCreateNewGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {

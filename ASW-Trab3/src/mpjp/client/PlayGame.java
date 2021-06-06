@@ -52,6 +52,8 @@ public class PlayGame extends Composite {
 
 	private final PuzzleServiceAsync puzzleServiceAsync = GWT.create(PuzzleService.class);
 	final VerticalPanel allPanels = new VerticalPanel();
+	
+	Label title = new Label("Welcome to Multi-Player Jigsaw Puzzle");
 	Label text = new Label("Percentage resolved: 0%        Time: 0:0");
 	final Button joinAnotherGame = new Button("Joint to another game");
 
@@ -76,7 +78,13 @@ public class PlayGame extends Composite {
 	Integer selectedBlockId;
 	Point delta, diff;
 
-	
+	/**
+	 * Paint game and to do some inicializations
+	 * @param panels
+	 * @param managerService
+	 * @param puzzleInfo
+	 * @param workspaceId
+	 */
 	PlayGame(final DeckPanel panels, final PuzzleServiceAsync managerService, PuzzleInfo puzzleInfo, String workspaceId) {
 		if (canvas == null) {
 			initWidget(new Label("Canvas not supported"));
@@ -90,6 +98,8 @@ public class PlayGame extends Composite {
 		mouseEvent();
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		title.addStyleName("title");
+		allPanels.add(title);
 		allPanels.add(canvas);
 		allPanels.add(text);
 		allPanels.add(joinAnotherGame);
@@ -105,7 +115,16 @@ public class PlayGame extends Composite {
 	}
 	 
 
-
+	/**
+	 * Paint game and to do some inicializations
+	 * @param panels
+	 * @param managerService
+	 * @param imageName
+	 * @param cuttingName
+	 * @param rows
+	 * @param columns
+	 * @throws MPJPException
+	 */
 	PlayGame(final DeckPanel panels, final PuzzleServiceAsync managerService, String imageName, String cuttingName,
 			int rows, int columns) throws MPJPException {
 		if (canvas == null) {
@@ -118,6 +137,8 @@ public class PlayGame extends Composite {
 		mouseEvent();
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		title.addStyleName("title");
+		allPanels.add(title);
 		allPanels.add(canvas);
 		allPanels.add(text);
 		allPanels.add(joinAnotherGame);
@@ -132,9 +153,14 @@ public class PlayGame extends Composite {
 		});
 	}
 	
+
 	/**
 	 * Initialize workspace
-	 * 
+	 * @param imageName
+	 * @param cuttingName
+	 * @param rows
+	 * @param columns
+	 * @throws MPJPException
 	 */
 	private void initWorkspace(String imageName, String cuttingName, int rows, int columns) throws MPJPException {
 		gc = canvas.getContext2d();
@@ -149,14 +175,11 @@ public class PlayGame extends Composite {
 				@Override
 				public void onSuccess(String result) {
 					workspaceId = result;
-					GWT.log("entrei aqui");
 					try {
 						puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
 							@Override
 							public void onSuccess(PuzzleView result2) {
 								currentPuzzleView = result2;
-								GWT.log("entrei aqui");
-
 								try {
 									puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
 										@Override
@@ -292,6 +315,12 @@ public class PlayGame extends Composite {
 		poolAndPaint();
 	}
 
+	
+	/**
+	 * Activated when mouse is pressed
+
+	 * @param MouseMoveEvent e
+	 */
 	void mousePressed(MouseDownEvent e) {
 		moving = true;
 		mousePosition = new Point(e.getX(),e.getY());	//start
@@ -322,6 +351,11 @@ public class PlayGame extends Composite {
 		}
 	}
 	
+	/**
+	 * Activated when mouse is dragged
+
+	 * @param MouseMoveEvent e
+	 */
 	private void mouseDragged(MouseMoveEvent e) {
 		if(mousePosition != null) { 
 			int x = e.getX();
@@ -333,7 +367,10 @@ public class PlayGame extends Composite {
 			}
 		}
 	}
-	
+	/**
+	 * Activated when mouse is realeased
+	 * @param e
+	 */
 	public void mouseReleased(MouseUpEvent e) {
 		moving = false;
 		if(selectedId != null) {
@@ -377,12 +414,12 @@ public class PlayGame extends Composite {
         clip.play();
     }
 	
-	
+
 	/**
-	 * Checks if event is within this workspace. When dragging, events
+	  Checks if event is within this workspace. When dragging, events
 	 * with coordinates outside the window can be sent to it.
-	 * 
-	 * @param event to check
+	 * @param x
+	 * @param y
 	 * @return {@code true} is event is within workspace, false otherwise 
 	 */
 	private boolean withinWorkspace(int x, int y) {
@@ -633,5 +670,3 @@ public class PlayGame extends Composite {
 	}
 	
 }
-
-

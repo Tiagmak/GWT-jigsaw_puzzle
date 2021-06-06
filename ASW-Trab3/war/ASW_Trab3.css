@@ -17,6 +17,12 @@ body {
 	border: 2px solid orange;
 }
 
+.centralInitialPanel {
+	width: 25%;
+	height: 300px;
+	border: 2px solid orange;
+}
+
 .centralPanel {
 	width: 40%;
 	height: 550px;
@@ -27,7 +33,13 @@ body {
 }
 
 .ask {
-	font-size: 40px;
+	margin-top: 20%;
+	font-size: 30px;
+}
+
+.designButtons{
+	height: 100px;
+	width: 100px;
 }
 
 .optionsPanel {
@@ -35,6 +47,7 @@ body {
 	justify-content: center;
 	align-content: center; 
 	height: 100px;
+	
 }
 .imagePanel{
 	border: 2px solid orange;
@@ -53,10 +66,7 @@ body {
 	height: 900px;
 }
 
-.gwt-TabPanel {
-	width: 100%;
-	height: auto;
-}
+
 /*------------------------------------------------------------------------------------------------------*/
 .sendButton {
 	display: block;

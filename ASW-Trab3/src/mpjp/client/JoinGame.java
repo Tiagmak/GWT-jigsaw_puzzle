@@ -45,6 +45,12 @@ class JoinGame extends Composite {
 	final Label ask = new Label("Please choose a puzzle:");
 	final Button startGameButton = new Button("Start");
 
+	/**
+	 * Paint join page
+	 * 
+	 * @param panels
+	 * @param managerService
+	 */
 	JoinGame(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
 
@@ -54,12 +60,7 @@ class JoinGame extends Composite {
 			managerService.getAvailableWorkspaces(new AsyncCallback<HashMap<String, PuzzleSelectInfo>>() {
 
 				public void onSuccess(HashMap<String, PuzzleSelectInfo> result) {
-					if (result.isEmpty()) {
-						centralPanel.add(new Label("There aren't available puzzles now"));
-						allPanels.add(title);
-						allPanels.add(centralPanel);
-						return;
-					}
+
 					int rows = result.size() / 3 + 1;
 					grid.resize(rows, 3);
 
@@ -142,13 +143,17 @@ class JoinGame extends Composite {
 
 		startGameButton.addClickHandler(new ClickHandler() {
 			@Override
+			/**
+			 * Activate when user click on startGameButton
+			 * 
+			 * @param event
+			 */
 			public void onClick(ClickEvent event) {
 				String imageNr = dropBox.getValue(dropBox.getSelectedIndex());
 				int nrSelect = Integer.parseInt(imageNr);
 
 				String WId = puzzleNrs.get(nrSelect);
 				PuzzleSelectInfo puzzleSelectInfo = allAvailableWorkspaces.get(WId);
-				GWT.log(puzzleSelectInfo.getCuttingName());
 
 				PuzzleInfo puzzleInfo = new PuzzleInfo(puzzleSelectInfo.getImageName(),
 						puzzleSelectInfo.getCuttingName(), puzzleSelectInfo.getRows(), puzzleSelectInfo.getColumns(),

@@ -3,7 +3,6 @@ package mpjp.client;
 import java.util.HashSet;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -15,7 +14,6 @@ import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 import mpjp.shared.MPJPException;
@@ -24,35 +22,21 @@ public class CreateGame extends Composite {
 
 	final VerticalPanel allPanels = new VerticalPanel();
 	final VerticalPanel centralPanel = new VerticalPanel();
-
-	final HorizontalPanel imagesPanel = new HorizontalPanel();
-	final HorizontalPanel cuttingsPanel = new HorizontalPanel();
-	final HorizontalPanel dimensionPanel = new HorizontalPanel();
-
 	final HorizontalPanel buttonsPanel = new HorizontalPanel();
+	final HorizontalPanel rowsPanel = new HorizontalPanel();
+	final HorizontalPanel columnsPanel = new HorizontalPanel();
 
-	ImageElement image;
-	// Image img2 = new Image("exterior3.jpg");
-	// Image img3 = new Image("exterior7.jpg");
-
-	RadioButton img1Button = new RadioButton("images", "oo");
-
-	//RadioButton cuttingRoundButton = new RadioButton("cuttings", "Round");
-	//RadioButton cuttingStraightButton = new RadioButton("cuttings", "Straight");
-	//RadioButton cuttingTriangularButton = new RadioButton("cuttings", "Triangular");
-	//RadioButton cuttingStandardButton = new RadioButton("cuttings", "Standard");
-
-	RadioButton dimension1x2Button = new RadioButton("dimension", "1x2");
-	RadioButton dimension2x1Button = new RadioButton("dimension", "2x1");
-	RadioButton dimension5x5Button = new RadioButton("dimension", "5x5");
-	RadioButton dimension8x9Button = new RadioButton("dimension", "8x9");
-	RadioButton dimension10x10Button = new RadioButton("dimension", "10x10");
-	RadioButton dimension14x15Button = new RadioButton("dimension", "14x15");
+	final ListBox dropBoxImages = new ListBox();
+	final ListBox dropBoxCuttings = new ListBox();
+	final ListBox dropBoxRows = new ListBox();
+	final ListBox dropBoxColumns = new ListBox();
 
 	Label title = new Label("Welcome to Multi-Player Jigsaw Puzzle");
-	final Label images = new HTML("Images");
-	final Label cuttings = new HTML("Cutting");
-	final Label dimensions = new HTML("Dimension");
+	final Label imagesLabel = new HTML("Images");
+	final Label cuttingsLabel = new HTML("Cutting");
+	final Label dimensionsLabel = new HTML("Dimensions");
+	final Label rowsLabel = new HTML("Rows: ");
+	final Label columnsLabel = new HTML("Columns: ");
 
 	Button buttonBack = new Button("Back");
 	Button buttonPlayGame = new Button("Play Game");
@@ -60,96 +44,76 @@ public class CreateGame extends Composite {
 	CreateGame(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
 
-		final ListBox dropBox = new ListBox();
-		dropBox.setMultipleSelect(false);
-		GWT.log(DEBUG_ID_PREFIX);
-		dropBox.addAttachHandler(e -> {
+		dropBoxImages.setMultipleSelect(false);
+		dropBoxImages.addAttachHandler(e -> {
 			managerService.getAvailableImages(new AsyncCallback<HashSet<String>>() {
 				@Override
 				public void onSuccess(HashSet<String> result) {
 					for (String string : result) {
-						dropBox.addItem(string);
+						dropBoxImages.addItem(string);
 					}
 				}
-
 				@Override
 				public void onFailure(Throwable caught) {
 					GWT.log(DEBUG_ID_PREFIX);
 				}
 			});
 		});
-		//////////////////////////////////////////////////////////////////////////////////
-		final ListBox dropBoxCuttings = new ListBox();
+		
+		
 		dropBoxCuttings.setMultipleSelect(false);
-		GWT.log(DEBUG_ID_PREFIX);
 		dropBoxCuttings.addAttachHandler(e -> {
 			managerService.getAvailableCuttings(new AsyncCallback<HashSet<String>>() {
-
 				@Override
 				public void onSuccess(HashSet<String> result) {
 					for (String string : result) {
 						dropBoxCuttings.addItem(string);
-
 					}
 				}
-
 				@Override
 				public void onFailure(Throwable caught) {
-					// TODO Auto-generated method stub
 					GWT.log(DEBUG_ID_PREFIX);
 				}
 			});
 		});
 		
-		
-		final ListBox dropBoxDimension = new ListBox();
-		dropBoxDimension.setMultipleSelect(false);
-		GWT.log(DEBUG_ID_PREFIX);
-		dropBoxDimension.addAttachHandler(e -> {
-						dropBoxDimension.addItem("1x2");
-						dropBoxDimension.addItem("2x1");
-						dropBoxDimension.addItem("5x5");
-						dropBoxDimension.addItem("8x9");
-						dropBoxDimension.addItem("10x10");
+		dropBoxRows.setMultipleSelect(false);
+		dropBoxRows.addAttachHandler(e -> {
+			for(int i = 2; i<=10; i++) {
+				dropBoxRows.addItem(""+i);
+			}
 		});
 		
+		dropBoxColumns.setMultipleSelect(false);
+		dropBoxColumns.addAttachHandler(e -> {
+			for(int i = 2; i<=10; i++) {
+				dropBoxColumns.addItem(""+i);
+			}
+		});
 		
+		imagesLabel.addStyleName("subtitle");
+		cuttingsLabel.addStyleName("subtitle");
+		dimensionsLabel.addStyleName("subtitle");
+	
+		rowsPanel.add(rowsLabel);
+		rowsPanel.add(dropBoxRows);
 		
-		imagesPanel.add(dropBox);
+		columnsPanel.add(columnsLabel);
+		columnsPanel.add(dropBoxColumns);
 		
-		cuttingsPanel.setSpacing(55);
-		cuttingsPanel.add(dropBoxCuttings);
-		//cuttingsPanel.add(cuttingRoundButton);
-		//cuttingsPanel.add(cuttingStraightButton);
-		//cuttingsPanel.add(cuttingTriangularButton);
-		//cuttingsPanel.add(cuttingStandardButton);
-		//cuttingRoundButton.setValue(true);
-
-		dimensionPanel.setSpacing(55);
-		//dimensionPanel.add(dimension1x2Button);
-		//dimensionPanel.add(dimension2x1Button);
-		//dimensionPanel.add(dimension5x5Button);
-		//dimensionPanel.add(dimension8x9Button);
-		//dimensionPanel.add(dimension10x10Button);
-		//dimensionPanel.add(dimension14x15Button);
-		//dimension1x2Button.setValue(true);
-		dimensionPanel.add(dropBoxDimension);
-		
-				buttonsPanel.setSpacing(35);
 		buttonsPanel.add(buttonBack);
 		buttonsPanel.add(buttonPlayGame);
 
 		centralPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		centralPanel.setSpacing(30);
 		centralPanel.addStyleName("centralPanel");
-		images.addStyleName("subtitle");
-		cuttings.addStyleName("subtitle");
-		dimensions.addStyleName("subtitle");
-		centralPanel.add(images);
-		centralPanel.add(imagesPanel);
-		centralPanel.add(cuttings);
-		centralPanel.add(cuttingsPanel);
-		centralPanel.add(dimensions);
-		centralPanel.add(dimensionPanel);
+		centralPanel.add(imagesLabel);
+		centralPanel.add(dropBoxImages);
+		centralPanel.add(cuttingsLabel);
+		centralPanel.add(dropBoxCuttings);
+		centralPanel.add(dimensionsLabel);
+		centralPanel.add(rowsPanel);
+		centralPanel.add(columnsPanel);
 		centralPanel.add(buttonsPanel);
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
@@ -157,6 +121,7 @@ public class CreateGame extends Composite {
 		allPanels.add(title);
 		allPanels.add(centralPanel);
 
+		
 		buttonBack.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -165,19 +130,22 @@ public class CreateGame extends Composite {
 			}
 		});
 
-		//String cuttings = "Round";
-		
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				
 				PlayGame playGame = null;
 				try {
-					String imageName         = dropBox.getValue(dropBox.getSelectedIndex());
+					String imageName         = dropBoxImages.getValue(dropBoxImages.getSelectedIndex());
 					String imageNamecuttings = dropBoxCuttings.getValue(dropBoxCuttings.getSelectedIndex());
-					GWT.log("imageName : " + imageName);
-					GWT.log("imageNamecuttings: "+imageNamecuttings);
-					playGame = new PlayGame(panels, managerService, imageName, imageNamecuttings, 2, 5);
+					
+					String rowsString = dropBoxRows.getValue(dropBoxRows.getSelectedIndex());
+					String columnsString = dropBoxColumns.getValue(dropBoxColumns.getSelectedIndex());
+					
+					int rowsNr =  Integer.parseInt(rowsString);
+					int columnsNr =  Integer.parseInt(columnsString);
+					
+					playGame = new PlayGame(panels, managerService, imageName, imageNamecuttings, rowsNr, columnsNr);
 				} catch (MPJPException e) {
 					e.printStackTrace();
 				}
