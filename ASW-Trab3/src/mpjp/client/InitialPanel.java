@@ -23,6 +23,7 @@ class InitialPanel extends Composite {
 
 	/**
 	 * Paint initial Panel
+	 * 
 	 * @param panels
 	 * @param managerService
 	 */
@@ -48,6 +49,7 @@ class InitialPanel extends Composite {
 
 		/**
 		 * Activate when user click on buttonJoinGame
+		 * 
 		 * @param event
 		 */
 		buttonJoinGame.addClickHandler(new ClickHandler() {
@@ -61,6 +63,7 @@ class InitialPanel extends Composite {
 
 		/**
 		 * Activate when user click on buttonCreateNewGame
+		 * 
 		 * @param event
 		 */
 		buttonCreateNewGame.addClickHandler(new ClickHandler() {

@@ -2,7 +2,10 @@ package mpjp.client;
 
 import java.util.HashSet;
 
+import com.google.gwt.canvas.client.Canvas;
+import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -19,6 +22,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import mpjp.shared.MPJPException;
 
 public class CreateGame extends Composite {
+	private Canvas canvas = Canvas.createIfSupported();
+	Context2d gc;
 
 	final VerticalPanel allPanels = new VerticalPanel();
 	final VerticalPanel centralPanel = new VerticalPanel();
@@ -43,6 +48,11 @@ public class CreateGame extends Composite {
 
 	CreateGame(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
+		gc = canvas.getContext2d();
+		canvas.setCoordinateSpaceHeight(700);
+		canvas.setCoordinateSpaceWidth(700);
+
+		paintCanvas("exterior7.jpg");
 
 		dropBoxImages.setMultipleSelect(false);
 		dropBoxImages.addAttachHandler(e -> {
@@ -53,14 +63,14 @@ public class CreateGame extends Composite {
 						dropBoxImages.addItem(string);
 					}
 				}
+
 				@Override
 				public void onFailure(Throwable caught) {
 					GWT.log(DEBUG_ID_PREFIX);
 				}
 			});
 		});
-		
-		
+
 		dropBoxCuttings.setMultipleSelect(false);
 		dropBoxCuttings.addAttachHandler(e -> {
 			managerService.getAvailableCuttings(new AsyncCallback<HashSet<String>>() {
@@ -70,45 +80,47 @@ public class CreateGame extends Composite {
 						dropBoxCuttings.addItem(string);
 					}
 				}
+
 				@Override
 				public void onFailure(Throwable caught) {
 					GWT.log(DEBUG_ID_PREFIX);
 				}
 			});
 		});
-		
+
 		dropBoxRows.setMultipleSelect(false);
 		dropBoxRows.addAttachHandler(e -> {
-			for(int i = 2; i<=10; i++) {
-				dropBoxRows.addItem(""+i);
+			for (int i = 2; i <= 10; i++) {
+				dropBoxRows.addItem("" + i);
 			}
 		});
-		
+
 		dropBoxColumns.setMultipleSelect(false);
 		dropBoxColumns.addAttachHandler(e -> {
-			for(int i = 2; i<=10; i++) {
-				dropBoxColumns.addItem(""+i);
+			for (int i = 2; i <= 10; i++) {
+				dropBoxColumns.addItem("" + i);
 			}
 		});
-		
+
 		imagesLabel.addStyleName("subtitle");
 		cuttingsLabel.addStyleName("subtitle");
 		dimensionsLabel.addStyleName("subtitle");
-	
+
 		rowsPanel.add(rowsLabel);
 		rowsPanel.add(dropBoxRows);
-		
+
 		columnsPanel.add(columnsLabel);
 		columnsPanel.add(dropBoxColumns);
-		
+
 		buttonsPanel.add(buttonBack);
 		buttonsPanel.add(buttonPlayGame);
 
 		centralPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-		centralPanel.setSpacing(30);
+		centralPanel.setSpacing(15);
 		centralPanel.addStyleName("centralPanel");
 		centralPanel.add(imagesLabel);
 		centralPanel.add(dropBoxImages);
+		centralPanel.add(canvas);
 		centralPanel.add(cuttingsLabel);
 		centralPanel.add(dropBoxCuttings);
 		centralPanel.add(dimensionsLabel);
@@ -121,7 +133,6 @@ public class CreateGame extends Composite {
 		allPanels.add(title);
 		allPanels.add(centralPanel);
 
-		
 		buttonBack.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -130,21 +141,31 @@ public class CreateGame extends Composite {
 			}
 		});
 
+		dropBoxImages.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+
+				String imageName = dropBoxImages.getValue(dropBoxImages.getSelectedIndex());
+				GWT.log(imageName);
+				paintCanvas(imageName);
+			}
+		});
+
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				
+
 				PlayGame playGame = null;
 				try {
-					String imageName         = dropBoxImages.getValue(dropBoxImages.getSelectedIndex());
+					String imageName = dropBoxImages.getValue(dropBoxImages.getSelectedIndex());
 					String imageNamecuttings = dropBoxCuttings.getValue(dropBoxCuttings.getSelectedIndex());
-					
+
 					String rowsString = dropBoxRows.getValue(dropBoxRows.getSelectedIndex());
 					String columnsString = dropBoxColumns.getValue(dropBoxColumns.getSelectedIndex());
-					
-					int rowsNr =  Integer.parseInt(rowsString);
-					int columnsNr =  Integer.parseInt(columnsString);
-					
+
+					int rowsNr = Integer.parseInt(rowsString);
+					int columnsNr = Integer.parseInt(columnsString);
+
 					playGame = new PlayGame(panels, managerService, imageName, imageNamecuttings, rowsNr, columnsNr);
 				} catch (MPJPException e) {
 					e.printStackTrace();
@@ -153,6 +174,18 @@ public class CreateGame extends Composite {
 				panels.showWidget(2);
 			}
 		});
-		
+
+	}
+
+	void paintCanvas(String imageName) {
+		MPJPResources.loadImageElement(imageName, i -> {
+			ImageElement image = i;
+			int imageWidth = image.getWidth();
+			int imageHeight = image.getHeight();
+
+			canvas.setCoordinateSpaceHeight(200);
+			canvas.setCoordinateSpaceWidth(200);
+			gc.drawImage(image, 4, 4, imageWidth / 6, imageHeight / 5);
+		});
 	}
 }

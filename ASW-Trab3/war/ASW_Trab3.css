@@ -24,8 +24,7 @@ body {
 }
 
 .centralPanel {
-	width: 40%;
-	height: 550px;
+	width: 30%;
 	display: flex;
 	justify-content: center;
 	align-content: center; 
@@ -59,6 +58,11 @@ body {
 	color: #D92D11;
 	margin-top: 15%;
 }
+
+.infoGame {
+	font-size: 2em;
+	color: black;
+*}
 
 .canvas {
 	border: 2px solid orange;
