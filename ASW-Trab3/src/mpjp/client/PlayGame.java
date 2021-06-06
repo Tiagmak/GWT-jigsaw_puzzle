@@ -1,34 +1,30 @@
 package mpjp.client;
 
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Toolkit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
-
-import javax.sound.sampled.Clip;
 
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
-import com.google.gwt.canvas.dom.client.TextMetrics;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.ImageElement;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.Timer;
 
 import mpjp.client.MPJPResources.MPJPAudioResource;
-import mpjp.game.PuzzleSolver;
 import mpjp.shared.MPJPException;
 import mpjp.shared.PieceStatus;
 import mpjp.shared.PuzzleInfo;
@@ -57,6 +53,10 @@ public class PlayGame extends Composite {
 
 	private final PuzzleServiceAsync puzzleServiceAsync = GWT.create(PuzzleService.class);
 	final VerticalPanel allPanels = new VerticalPanel();
+	final HorizontalPanel percentageInfo = new HorizontalPanel();
+	Label text = new Label("Percentage resolved: ");
+	Label text2 = new Label("0%");
+	final Button joinAnotherGame = new Button("Joint to another game");
 
 	private Canvas canvas = Canvas.createIfSupported();
 	Context2d gc;
@@ -80,7 +80,7 @@ public class PlayGame extends Composite {
 	Point delta, diff;
 
 	
-	PlayGame(final DeckPanel panels, PuzzleInfo puzzleInfo, String workspaceId) {
+	PlayGame(final DeckPanel panels, final PuzzleServiceAsync managerService, PuzzleInfo puzzleInfo, String workspaceId) {
 		if (canvas == null) {
 			initWidget(new Label("Canvas not supported"));
 			return;
@@ -94,6 +94,19 @@ public class PlayGame extends Composite {
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		allPanels.add(canvas);
+		percentageInfo.add(text);
+		percentageInfo.add(text2);	
+		allPanels.add(percentageInfo);
+		allPanels.add(joinAnotherGame);
+		
+		joinAnotherGame.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				JoinGame join = new JoinGame(panels, managerService);
+				panels.add(join);
+				panels.showWidget(3);
+			}
+		});
 	}
 	 
 
@@ -107,18 +120,34 @@ public class PlayGame extends Composite {
 		initWidget(allPanels);
 
 		initWorkspace(imageName, cuttingName, rows, columns);
-		canvas.setCoordinateSpaceHeight(800);
-		canvas.setCoordinateSpaceWidth(1200);
+		
 		mouseEvent();
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		allPanels.add(canvas);
+		percentageInfo.add(text);
+		percentageInfo.add(text2);	
+		allPanels.add(percentageInfo);
+		allPanels.add(joinAnotherGame);
+		
+		joinAnotherGame.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				JoinGame join = new JoinGame(panels, managerService);
+				panels.add(join);
+				panels.showWidget(3);
+			}
+		});
 	}
 
 	private void initWorkspace(String imageName, String cuttingName, int rows, int columns) throws MPJPException {
 		gc = canvas.getContext2d();
+		canvas.setCoordinateSpaceHeight(800);
+		canvas.setCoordinateSpaceWidth(1200);
+		canvas.setStyleName("canvas");
+		
 		puzzleInfo = new PuzzleInfo(imageName, cuttingName, rows, columns, 500, 500);
-
+		
 		try {
 			puzzleServiceAsync.createWorkspace(puzzleInfo, new AsyncCallback<String>() {
 				@Override
@@ -172,6 +201,7 @@ public class PlayGame extends Composite {
 	
 	private void initStructureToJoinOption() {
 		gc = canvas.getContext2d();
+
 		try {
 			puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
 				@Override
@@ -347,7 +377,7 @@ public class PlayGame extends Composite {
 		//TODO Verificar melhor isto do PaintFinal
 		if(solveComplete) 
 			paintFinal();
-		else if(currentPuzzleLayout.isSolved()) {
+		else if(puzzleLayout.isSolved()) {
 			solveComplete = true;
 			animateSolvedPuzzle();
 			playClip(SOLVED_SOUND_NAME);
@@ -362,7 +392,7 @@ public class PlayGame extends Composite {
 		MPJPResources.loadImageElement(puzzleInfo.getImageName(), i -> {
 			ImageElement image = i;
 
-			gc.drawImage(image, 0, 0, totalWidth, totalHeight);
+			gc.drawImage(image, 0, 0);
 		});
 
 	}
@@ -373,6 +403,8 @@ public class PlayGame extends Composite {
 
 		int puzzleWidth = (int) currentPuzzleView.getPuzzleWidth();
 		int puzzleHeight = (int) currentPuzzleView.getPuzzleHeight();
+		
+		showFooter();
 
 		Map<Integer,PieceStatus> pieces = currentPuzzleLayout.getPieces();
 		PieceStatus piece0 = pieces.get(0);
@@ -521,8 +553,15 @@ public class PlayGame extends Composite {
 	}
 	
 
-	private void showFooter() {		//TODO
+	private void showFooter() {
+		int complete = currentPuzzleLayout.getPercentageSolved();
 		
+		Date start = currentPuzzleView.getStart();
+		int elapsed = (int) ((new Date().getTime() - start.getTime())/60L/1000L);
+		int hours  = elapsed / 60;
+		int minutes = elapsed % 60;
+		
+		text2.setText("" + complete + "%" + "Time: " + hours + ":" + minutes);
 	}
 	
 }

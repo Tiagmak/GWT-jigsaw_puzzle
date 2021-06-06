@@ -81,4 +81,5 @@ public interface PuzzleServiceAsync {
 	 * @throws MPJPException - if the workspace ID is invalid
 	 */
 	void selectPiece(String workspaceId, Point point, AsyncCallback<Integer> callback) throws MPJPException;
+
 }

@@ -24,7 +24,8 @@ class InitialPanel extends Composite {
 	InitialPanel(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
 
-		optionsPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+		//optionsPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+
 		optionsPanel.addStyleName("optionsPanel");
 		//buttonJoinGame.addStyleName("button");
 		//buttonCreateNewGame.addStyleName("button");
