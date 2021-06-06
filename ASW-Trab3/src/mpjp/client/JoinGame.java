@@ -31,7 +31,7 @@ class JoinGame extends Composite {
 	final VerticalPanel centralPanel = new VerticalPanel();
 	final HorizontalPanel buttonspanel = new HorizontalPanel();
 	final ListBox dropBox = new ListBox();
-	
+
 	Map<String, PuzzleSelectInfo> allAvailableWorkspaces = new HashMap<>();
 	HashMap<Integer, String> puzzleNrs = new HashMap<Integer, String>();
 
@@ -54,21 +54,26 @@ class JoinGame extends Composite {
 			managerService.getAvailableWorkspaces(new AsyncCallback<HashMap<String, PuzzleSelectInfo>>() {
 
 				public void onSuccess(HashMap<String, PuzzleSelectInfo> result) {
+					if (result.isEmpty()) {
+						centralPanel.add(new Label("There aren't available puzzles now"));
+						allPanels.add(title);
+						allPanels.add(centralPanel);
+						return;
+					}
 					int rows = result.size() / 3 + 1;
 					grid.resize(rows, 3);
 
 					for (Entry<String, PuzzleSelectInfo> w : result.entrySet()) {
-						allAvailableWorkspaces.put(w.getKey(),w.getValue());
-						
+						allAvailableWorkspaces.put(w.getKey(), w.getValue());
+
 						String workspaceId = w.getKey();
 						PuzzleSelectInfo puzzleSelectInfo = w.getValue();
 						puzzleNrs.put(puzzleNr, workspaceId);
 
-
 						Canvas canvas = Canvas.createIfSupported();
 						VerticalPanel imagePanel = new VerticalPanel();
 						Label nrPuzzleLabel = new Label("Puzzle " + puzzleNr);
-						dropBox.addItem(""+puzzleNr);
+						dropBox.addItem("" + puzzleNr);
 						Label imageFooter = new Label("Resolved percentaged:" + puzzleSelectInfo.getPercentageSolved());
 						Context2d gc = canvas.getContext2d();
 
@@ -119,12 +124,11 @@ class JoinGame extends Composite {
 				}
 			});
 		});
-		
+
 		buttonspanel.add(startGameButton);
 
 		centralPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		centralPanel.setSpacing(30);
-		// centralPanel.addStyleName("centralPanel");
 		ask.addStyleName("ask");
 		centralPanel.add(ask);
 		centralPanel.add(dropBox);
@@ -140,20 +144,19 @@ class JoinGame extends Composite {
 			@Override
 			public void onClick(ClickEvent event) {
 				String imageNr = dropBox.getValue(dropBox.getSelectedIndex());
-			    int nrSelect = Integer.parseInt(imageNr);
-				
-			    GWT.log(""+puzzleNrs.size());
-				GWT.log("rr"+allAvailableWorkspaces.size());
-				
-				String WId= puzzleNrs.get(nrSelect);
-				PuzzleSelectInfo puzzleSelectInfo = allAvailableWorkspaces.get(WId); 
-				GWT.log(""+puzzleSelectInfo.getPercentageSolved());
-				
-				PuzzleInfo puzzleInfo = new PuzzleInfo();
-				
-				PlayGame playGame = new PlayGame(panels, managerService, puzzleInfo,  WId);
+				int nrSelect = Integer.parseInt(imageNr);
+
+				String WId = puzzleNrs.get(nrSelect);
+				PuzzleSelectInfo puzzleSelectInfo = allAvailableWorkspaces.get(WId);
+				GWT.log(puzzleSelectInfo.getCuttingName());
+
+				PuzzleInfo puzzleInfo = new PuzzleInfo(puzzleSelectInfo.getImageName(),
+						puzzleSelectInfo.getCuttingName(), puzzleSelectInfo.getRows(), puzzleSelectInfo.getColumns(),
+						500, 500);
+
+				PlayGame playGame = new PlayGame(panels, managerService, puzzleInfo, WId);
 				panels.add(playGame);
-				panels.showWidget(2);	
+				panels.showWidget(2);
 			}
 		});
 

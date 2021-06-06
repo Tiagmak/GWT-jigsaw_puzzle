@@ -19,7 +19,6 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.Timer;
@@ -53,9 +52,7 @@ public class PlayGame extends Composite {
 
 	private final PuzzleServiceAsync puzzleServiceAsync = GWT.create(PuzzleService.class);
 	final VerticalPanel allPanels = new VerticalPanel();
-	final HorizontalPanel percentageInfo = new HorizontalPanel();
-	Label text = new Label("Percentage resolved: ");
-	Label text2 = new Label("0%");
+	Label text = new Label("Percentage resolved: 0%        Time: 0:0");
 	final Button joinAnotherGame = new Button("Joint to another game");
 
 	private Canvas canvas = Canvas.createIfSupported();
@@ -94,9 +91,7 @@ public class PlayGame extends Composite {
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		allPanels.add(canvas);
-		percentageInfo.add(text);
-		percentageInfo.add(text2);	
-		allPanels.add(percentageInfo);
+		allPanels.add(text);
 		allPanels.add(joinAnotherGame);
 		
 		joinAnotherGame.addClickHandler(new ClickHandler() {
@@ -120,14 +115,11 @@ public class PlayGame extends Composite {
 		initWidget(allPanels);
 
 		initWorkspace(imageName, cuttingName, rows, columns);
-		
 		mouseEvent();
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		allPanels.add(canvas);
-		percentageInfo.add(text);
-		percentageInfo.add(text2);	
-		allPanels.add(percentageInfo);
+		allPanels.add(text);
 		allPanels.add(joinAnotherGame);
 		
 		joinAnotherGame.addClickHandler(new ClickHandler() {
@@ -139,7 +131,11 @@ public class PlayGame extends Composite {
 			}
 		});
 	}
-
+	
+	/**
+	 * Initialize workspace
+	 * 
+	 */
 	private void initWorkspace(String imageName, String cuttingName, int rows, int columns) throws MPJPException {
 		gc = canvas.getContext2d();
 		canvas.setCoordinateSpaceHeight(800);
@@ -199,9 +195,16 @@ public class PlayGame extends Composite {
 	}
 
 	
+	/**
+	 * Initialize workspace
+	 * 
+	 */
 	private void initStructureToJoinOption() {
 		gc = canvas.getContext2d();
-
+		canvas.setCoordinateSpaceHeight(800);
+		canvas.setCoordinateSpaceWidth(1200);
+		canvas.setStyleName("canvas");
+		
 		try {
 			puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
 				@Override
@@ -235,6 +238,12 @@ public class PlayGame extends Composite {
 		}
 	}
 
+	
+	/**
+	 * Pool data (needed on in concurrent solving) and paints the puzzle.
+	 * This will update the elapsed time on the footer 
+	 * even if the person is idle.
+	 */
 	private void poolAndPaint() {
 		new Timer() {
 			@Override
@@ -359,11 +368,23 @@ public class PlayGame extends Composite {
 		}
 	}
 	
+	/**
+	 * Play a loaded sound clip from the start
+	 * @param soundName
+	 */
 	private void playClip(String soundName) {
         MPJPAudioResource clip = MPJPResources.loadAudio(soundName);
         clip.play();
     }
 	
+	
+	/**
+	 * Checks if event is within this workspace. When dragging, events
+	 * with coordinates outside the window can be sent to it.
+	 * 
+	 * @param event to check
+	 * @return {@code true} is event is within workspace, false otherwise 
+	 */
 	private boolean withinWorkspace(int x, int y) {
 		int width  = (int) currentPuzzleView.getWorkspaceWidth();
 		int height = (int) currentPuzzleView.getWorkspaceHeight(); 
@@ -371,6 +392,10 @@ public class PlayGame extends Composite {
 		return x >= 0 && x <= width && y >= 0 && y <= height;
 	}
 	
+	/**
+	 * Repaint with double buffering with given graphic context 
+	 * @param puzzleLayout PuzzleLayout puzzleLayout 
+	 */
 	private void drawPuzzle(PuzzleLayout puzzleLayout) {
 		canvas.setCoordinateSpaceWidth(canvas.getCoordinateSpaceWidth());
 
@@ -385,6 +410,9 @@ public class PlayGame extends Composite {
 			paintBlocks(puzzleLayout);
 	}
 	
+	/**
+	 * Default paint when puzzle is solved
+	 */
 	private void paintFinal() {
 		int totalWidth  = (int) currentPuzzleView.getWorkspaceWidth();
 		int totalHeight = (int) currentPuzzleView.getWorkspaceHeight();
@@ -392,11 +420,16 @@ public class PlayGame extends Composite {
 		MPJPResources.loadImageElement(puzzleInfo.getImageName(), i -> {
 			ImageElement image = i;
 
-			gc.drawImage(image, 0, 0);
+			gc.drawImage(image, 0, 0, totalWidth, totalHeight);
 		});
 
 	}
 	
+	
+	/**
+	 * Animate the complete puzzle (without the pieces borders)
+	 * from current position until filling the complete workspace 
+	 */
 	private void animateSolvedPuzzle() {		
 		int totalWidth  = (int) currentPuzzleView.getWorkspaceWidth();
 		int totalHeight = (int) currentPuzzleView.getWorkspaceHeight();
@@ -442,6 +475,12 @@ public class PlayGame extends Composite {
 		}.scheduleRepeating((int) ANIMAMTION_DELAY);
 	}
 	
+	/**
+	 * Paint all the blocks, leaving the selected block for last
+	 * to make it hover over the others
+	 * 
+	 * @param puzzleLayout PuzzleLayout puzzleLayout 
+	 */
 	private void paintBlocks(PuzzleLayout puzzleLayout) {
 		Map<Integer, List<Integer>> blocks = puzzleLayout.getBlocks();
 		
@@ -460,6 +499,14 @@ public class PlayGame extends Composite {
 		showFooter();
 	}
 	
+	
+	/**
+	 * Paint a block of connected (thus, non-overlapping) pieces
+	 * 
+	 * @param puzzleLayout PuzzleLayout puzzleLayout 
+	 * @param pieceIDs list piece IDs
+	 * @param dragging {@true} if user dragging; {@false} otherwise
+	 */
 	private void paintBlock(List<Integer> pieceIDs, boolean dragging, PuzzleLayout puzzleLayout) {
 		try {
 			if(dragging)
@@ -481,6 +528,13 @@ public class PlayGame extends Composite {
 		}
 	}
 	
+	/**
+	 * Paint a single piece in a block, or its shade
+	 *  
+	 * @param puzzleLayout PuzzleLayout puzzleLayout 
+	 * @param id of piece being painted
+	 * @param dragging {@true} if user dragging; {@false} otherwise
+	 */
 	void paintPiece(int id,boolean dragging, PuzzleLayout puzzleLayout) {
 		
 		Map<Integer, PieceStatus> pieces = puzzleLayout.getPieces();
@@ -497,8 +551,14 @@ public class PlayGame extends Composite {
 		paintPieceWithImage(id);
 	}
 	
+	/**
+	 * Convert a PieceShape into a {@code java.asw.Shape},
+	 * useful for displaying using AWT and use its features 
+	 * 
+	 * @param pieceShape
+	 * @return
+	 */
 	private void paintShape(PieceShape pieceShape) {
-		//GeneralPath path = new GeneralPath();
 		Point start = pieceShape.getStartPoint();
 		gc.beginPath();
 		gc.moveTo(start.getX(), start.getY());
@@ -533,7 +593,12 @@ public class PlayGame extends Composite {
 		gc.stroke();
 	}
 
-	
+	/**
+	 * Paint a piece given its shape with the image as background
+	 * 
+	 * @param id of piece
+	 * @param shape of piece
+	 */
 	private void paintPieceWithImage(int id ) {
 		gc.save();
 		Point location = currentPuzzleView.getStandardPieceLocation(id);
@@ -552,7 +617,10 @@ public class PlayGame extends Composite {
 		});
 	}
 	
-
+	
+	/**
+	 * Show footer with puzzle status: percentage complete e solving time
+	 */
 	private void showFooter() {
 		int complete = currentPuzzleLayout.getPercentageSolved();
 		
@@ -561,7 +629,7 @@ public class PlayGame extends Composite {
 		int hours  = elapsed / 60;
 		int minutes = elapsed % 60;
 		
-		text2.setText("" + complete + "%" + "Time: " + hours + ":" + minutes);
+		text.setText("Percentage resolved: " + complete + "%" + "        Time: " + hours + ":" + minutes);
 	}
 	
 }

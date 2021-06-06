@@ -2,6 +2,7 @@ package mpjp.shared;
 
 import java.util.Date;
 
+
 /**
  *Information required to select a puzzle currently being solved. 
  *It will be used by users to decide to join to an existing workspace. 
@@ -30,7 +31,7 @@ public class PuzzleSelectInfo extends PuzzleInfo{
 	 * @param percentageSolved - percentage [0, 100] off the puzzle already solved
 	 */
 	public PuzzleSelectInfo(PuzzleInfo info, Date start2, int percentageSolved) {
-		super();
+		super(info.getImageName(), info.getCuttingName(), info.getRows(), info.getColumns(), info.getWidth(), info.getHeight());
 		this.percentageSolved = percentageSolved;
 		this.start = start2;
 	}

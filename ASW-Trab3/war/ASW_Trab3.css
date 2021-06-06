@@ -20,7 +20,6 @@ body {
 .centralPanel {
 	width: 40%;
 	height: 550px;
-	border: 4px solid orange;
 	display: flex;
 	justify-content: center;
 	align-content: center; 
@@ -49,7 +48,7 @@ body {
 }
 
 .canvas {
-	border: 2px solid black;
+	border: 2px solid orange;
 	width: 1100px;
 	height: 900px;
 }
