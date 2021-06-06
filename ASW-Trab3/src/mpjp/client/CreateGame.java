@@ -142,7 +142,7 @@ public class CreateGame extends Composite {
 				
 				PlayGame playGame = null;
 				try {
-					playGame = new PlayGame(panels, managerService, "exterior2.jpg", "Triangular", 4, 4);
+					playGame = new PlayGame(panels, managerService, "exterior2.jpg", "Triangular", 2, 2);
 				} catch (MPJPException e) {
 					e.printStackTrace();
 				}

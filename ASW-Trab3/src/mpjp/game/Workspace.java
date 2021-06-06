@@ -4,11 +4,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Queue;
+import java.util.Set;
+
 import mpjp.game.cuttings.Cutting;
 import mpjp.game.cuttings.CuttingFactoryImplementation;
+import mpjp.quad.PointQuadtree;
 import mpjp.shared.MPJPException;
 import mpjp.shared.PieceStatus;
 import mpjp.shared.PuzzleInfo;
@@ -19,353 +24,244 @@ import mpjp.shared.geom.PieceShape;
 import mpjp.shared.geom.Point;
 
 public class Workspace implements Serializable {
-	private static final long serialVersionUID = 1L;
-	private PuzzleInfo info;
-	private Date start;
 
-	static double radius, heightFactor, widthFactor;
-	Map<Integer, PieceStatus> pieces;
-	Map<Integer, List<Integer>> blocks;
-	Map<Integer, Point> locations;
+	private static final long serialVersionUID = -8893336838860720058L;
+	
+	private static double widthFactor = 2;
+	private static double heightFactor = 2;
+	private static double radius;
+	
+	private transient PointQuadtree<PieceStatus> puzzlePieces;
+	private transient PuzzleStructure structure;
+	
+	private Map<Integer,PieceStatus> pieces;
+	private Map<Integer,PieceShape> shapes;
+	
+	PuzzleInfo info;
+	Date start;
+	
+	Workspace(PuzzleInfo info) throws MPJPException {
 		
-	public Workspace(PuzzleInfo info) {
-		super();
-		widthFactor = 2;
-		heightFactor = 2;
 		this.info = info;
-		start = new Date();
+		this.start = new Date();
+		this.pieces = new HashMap<>();
+		this.structure = new PuzzleStructure(info);
+		
+		radius = Math.min(this.structure.getPieceWidth() / 2, this.structure.getPieceHeight() / 2);
+		
+		createQuadTree();
+		
 		scatter();
+		
+		Cutting cutting = new CuttingFactoryImplementation().createCutting(info.getCuttingName());
+		this.shapes = cutting.getShapes(structure);
 	}
 	
-	/**
-	 * Current proportion between board height and puzzle height. For instance, a factor 2 means that the boards are created with twice the puzzle's height.
-	 * @return     heightFactor ratio between workspace and puzzle heights
-	 */
-	public static double getHeightFactor() {
-		return heightFactor;
+	private void createQuadTree() {
+		double margin = Math.max(structure.getPieceWidth() / 2, structure.getPieceHeight() / 2);
+		radius = margin * 0.95;
+		
+		this.puzzlePieces = new PointQuadtree<PieceStatus>(info.getWidth() * Workspace.widthFactor, info.getHeight() * Workspace.heightFactor, margin);	
+	}
+
+	
+	private Map<Integer,Point> getLocations(){
+		Map<Integer, Point> locations = new HashMap<Integer, Point>();
+		
+		for(Integer p : pieces.keySet()) {
+			try {
+				locations.put(p, this.structure.getPieceStandardCenter(p));
+			} catch(Exception e) {}
+		}
+		return locations;
 	}
 	
-	/**
-	 * Change proportion between board width and puzzle width. For instance, a factor 2 means that the boards are created with twice the puzzle's height.
-	 * @param heightFactor - ratio between workspace and puzzle heights
-	 */
-	public static void setHeightFactor(double heightFactor) {
-		Workspace.heightFactor = heightFactor;
+	private Map<Integer, List<Integer>> getBlocks() {
+		Map<Integer, List<Integer> > blocks = new HashMap<Integer, List<Integer>>();
+		for(Integer id : pieces.keySet()) {
+			int block = pieces.get(id).getBlock();
+			if(! blocks.containsKey(block)) {
+				blocks.put(block, new ArrayList<Integer>());
+			}
+			blocks.get(block).add(id);
+		}
+		return blocks;
 	}
 	
-	/**
-	 * Current proportion between board width and puzzle width. For instance, a factor 2 means that the boards are created with twice the puzzle's width.
-	 * @return widthFactor ratio between workspace and puzzle widths
-	 */
 	public static double getWidthFactor() {
 		return widthFactor;
 	}
 	
-	/**
-	 * Change proportion between board width and puzzle width. For instance, a factor 2 means that the boards are created with twice the puzzle's width.
-	 * @param widthFactor - ratio between workspace and puzzle widths
-	 */
 	public static void setWidthFactor(double widthFactor) {
 		Workspace.widthFactor = widthFactor;
 	}
 	
-	/**
-	 * Current radius for matching
-	 * @return radius
-	 */
+	public static double getHeightFactor() {
+		return heightFactor;
+	}
+	
+	public static void setHeightFactor(double heightFactor) {
+		Workspace.heightFactor = heightFactor;
+	}
+	
 	public static double getRadius() {
 		return radius;
 	}
 	
-	/**
-	 * Set radius for matching pieces
-	 * @param radius -  for matching pieces
-	 */
 	public static void setRadius(double radius) {
 		Workspace.radius = radius;
 	}
 	
-	/**
-	 * The current piece positions and blocks formed by connected pieces
-	 * @return PuzzleLayout
-	 */
-	public PuzzleLayout getCurrentLayout() {
-		PuzzleLayout puzzleLayout = new PuzzleLayout(pieces, blocks, getPercentageSolved());
-		return puzzleLayout;
-	}
-	
-	/**
-	 * Information on this puzzle that may be used by a person to decide to help solving it. It is contains the data used to create the puzzle, 
-	 * the moment when it started being solved, and the percentage that was already solved.
-	 * @return  puzzleSelectInfo
-	 */
-	PuzzleSelectInfo getPuzzleSelectInfo() {
-		PuzzleSelectInfo puzzleSelectInfo = new PuzzleSelectInfo(info, start, getPercentageSolved());
-		return puzzleSelectInfo;
-	}
-	
-	/**
-	 * Puzzle structure used in this workspace's puzzle. This data is needed for unit testing.
-	 * @return     puzzle structure
-	 */
-	public PuzzleStructure getPuzzleStructure() {
-		PuzzleStructure puzzleStructure = new PuzzleStructure(info);
-		return puzzleStructure;
-	}
-	
-	/**
-	 * The visual part of the puzzle, sent to the client when the user starts solving the puzzle.
-	 * @return PuzzleView
-	 */
-	PuzzleView getPuzzleView() {
-		PuzzleStructure puzzleStructure = getPuzzleStructure();
-
-		double puzzleWidth = info.getWidth();
-		double puzzleHeight = info.getHeight();
-
-		double pieceWidth = puzzleStructure.getPieceWidth();
-		double pieceHeight = puzzleStructure.getPieceHeight();
-
-		double workspaceWidth = puzzleWidth * widthFactor;
-		double workspaceHeight = puzzleHeight * heightFactor;
-
-		String image = info.getImageName();
-
-		CuttingFactoryImplementation cfi = new CuttingFactoryImplementation();
-		Cutting cut;
-		Map<Integer, PieceShape> shapes = null;
-		try {
-			cut = cfi.createCutting(info.getCuttingName());
-			shapes = cut.getShapes(puzzleStructure);
-		} catch (MPJPException e) {
-			e.printStackTrace();
-		}
-
-		PuzzleView puzzleView = new PuzzleView(start, workspaceWidth, workspaceHeight, puzzleWidth, puzzleHeight,
-				pieceWidth, pieceHeight, image, shapes, locations);
-		return puzzleView;
-	}
-	
-	/**
-	 * Creates a string ID for this solution by combining some of its features (e.g. image) and the start date. 
-	 * This ID must be different for 2 workspaces created from the same data in different moments.
-	 * @return id for this workspace
-	 */
-	public String getId() {
+	String getId() {
 		return info.getImageName() + start.getTime();
 	}
 	
-	/**
-	 * Percentage in which puzzle is solved. 
-	 * @return percentageComplete
-	 */
-	public int getPercentageSolved() {
-		int nrPieces = pieces.size();
-		int nrBlocks = blocks.size();
-		return 100 * (nrPieces - nrBlocks) / (nrPieces - 1);
+	double getSelectRadius() {
+		double ratioH = info.getHeight()/info.getColumns();
+		double ratioW = info.getWidth()/info.getRows();
+		
+		return Math.max(ratioH, ratioW)/2;
 	}
 	
-	/**
-	 * The radius from the "center" of the piece where it can be selected. This radius should be maximum of piece width and height.
-	 * @return  radius for piece selection
-	 */
-	public double getSelectRadius() {
-		PuzzleStructure puzzleStructure = new PuzzleStructure(info);
-		double pieceHeight = puzzleStructure.getPieceHeight();
-		double pieceWidth = puzzleStructure.getPieceWidth();
-		return Math.sqrt(Math.pow(pieceHeight, 2) + Math.pow(pieceWidth, 2)) / 2;
+	PuzzleSelectInfo getPuzzleSelectInfo() {
+		return new PuzzleSelectInfo(info,start,getPercentageSolved());
 	}
 	
-	/**
-	 * Check if exist common ids 
-	 * @param listBlock - block of Id's
-	 * @param listBlockCurrent - block of Id's
-	 * @return commonIds - List of common ID's
-	 */
-	private List<Integer> verifyCommonIds(List<Integer> listBlock, List<Integer> listBlockCurrent) {
-		List<Integer> commonIds = new ArrayList<>();
-
-		List<Integer> smallestList = listBlock.size() < listBlockCurrent.size() ? listBlock : listBlockCurrent;
-		List<Integer> highestList = listBlock.size() < listBlockCurrent.size() ? listBlockCurrent : listBlock;
-
-		for (Integer i : smallestList) {
-			if (highestList.contains(i)) {
-				commonIds.add(i);
+	int getPercentageSolved() {
+		return 100 * (pieces.size() - getBlocks().size()) / (pieces.size() - 1);
+	}
+	
+	PuzzleView getPuzzleView() {
+		return new PuzzleView(
+				start,
+				info.getWidth() * getWidthFactor(),
+				info.getHeight() * getHeightFactor(),
+				info.getWidth(),
+				info.getHeight(),
+				structure.getPieceWidth(),
+				structure.getPieceHeight(),
+				info.getImageName(),
+				shapes,
+				getLocations());
+	}
+	
+	PuzzleLayout getCurrentLayout() {
+		return new PuzzleLayout(pieces, getBlocks(), getPercentageSolved());
+	}
+	
+	void scatter() {		
+		Map<Integer,Point> locations = getLocations();
+		
+		for(int id = 0; id < structure.getPieceCount(); id++) {
+			Point point;
+			do {
+				point = structure.getRandomPointInStandardPuzzle();
+			} while (locations.containsValue(point));
+			
+			PieceStatus piece = new PieceStatus(id, point);
+			piece.setBlock(id);
+			
+			puzzlePieces.insert(piece);
+			
+			pieces.put(id, piece);
+			locations.put(id, point);
+		}
+	}
+	
+	void restore() {
+		this.structure = new PuzzleStructure(info);
+		
+		createQuadTree();
+		
+		for(PieceStatus i : pieces.values())
+			puzzlePieces.insert(i);
+	}
+	
+	Integer selectPiece(Point point) {
+		Set<PieceStatus> set = puzzlePieces.findNear(point.getX(), point.getY(), getSelectRadius());
+		
+		PieceStatus f = null;
+		for(PieceStatus p : set) {
+			if(f == null || p.getBlock() > f.getBlock()) {
+				f = p;
 			}
 		}
-		return commonIds;
+		
+		return (f == null) ? null : f.getBlock();
 	}
 	
-	/**
-	 * Merge 2 blocks of integers
-	 * @param listBlockCurrent - block of Id's
-	 * @param listBlock - block of Id's
-	 * @return listBlock - block with ids of 2 inicial blocks
-	 */
-	private List<Integer> transferIds(List<Integer> listBlockCurrent, List<Integer> listBlock) {
-		for (Integer i : listBlockCurrent) {
-			listBlock.add(i);
-		}
-		return listBlock;
+	private boolean validId(int movedId, int numberOfPieces) {
+		return movedId >= 0 && movedId < numberOfPieces;
 	}
 	
-	/**
-	 * Change block Id of pieces
-	 * @param id
-	 */
-	private void changeBlockIdOfPieces(Integer id) {
-		for (Integer i : pieces.keySet()) {
-			PieceStatus pieceStatus = pieces.get(i);
-			pieceStatus.setBlock(id);
-			pieces.put(id, pieceStatus);
-		}
+	private boolean validPoint(Point point) {
+		return point.getX() >= 0 && 
+			   point.getX() < info.getWidth() * getWidthFactor() &&
+			   point.getY() >= 0 &&
+			   point.getY() < info.getHeight() * getHeightFactor();
 	}
 	
-	/**
-	 * Move the piece with given id to given point and check if it connects with other pieces. 
-	 * Pieces in the same block are moved accordingly. If two (or more pieces are connected) then they will merged into a single block. 
-	 * The new merged block will have as ID of the lowest ID. 
-	 *  If one of more pieces fall off the workspace the a exception is raised. However, all affected pieces are rolled back to their previous position.
-	 * @param moveId  - of a piece
-	 * @param point  - to where the piece's "center" is moved
-	 * @return PuzzleLayout
-	 * @throws MPJPException - if ID is invalid or moved pieces fall out of the quad tree
-	 */
-	PuzzleLayout connect(int moveId, Point point) throws MPJPException {
-		if (moveId < 0 || moveId >= info.getRows() * info.getColumns())
-			throw new MPJPException("Id is invalid");
-
-		if (point.getX() < 0 || point.getX() > info.getWidth() * widthFactor || point.getY() < 0
-				|| point.getY() > info.getHeight() * heightFactor)
-			throw new MPJPException("Coordinates are invalid");
-
-		PieceStatus pieceStatus = new PieceStatus(moveId, point);
-		pieces.put(moveId, pieceStatus);
-
-		locations.put(moveId, point);
-
-		List<Integer> listBlock = new ArrayList<>();
-		listBlock.add(moveId);
-		for (Integer i : locations.keySet()) {
-			Point pointLocations = locations.get(i);
-			if (i == moveId)
-				continue;
-			if (Math.pow(pointLocations.getX() - point.getX(), 2)
-					+ Math.pow(pointLocations.getY() - point.getY(), 2) <= Math.pow(radius, 2)) {
-				listBlock.add(i);
+	private Queue<PieceStatus> translateBlock(Point translateVector, int block) {
+		Queue<PieceStatus> queue = new LinkedList<PieceStatus>();
+		
+		for(Integer i : pieces.keySet()) {
+			PieceStatus piece = pieces.get(i);
+			if(piece.getBlock() == block) {
+				puzzlePieces.delete(piece);
+				
+				Point point = piece.getPosition();
+				point.setX(point.getX() + translateVector.getX());
+				point.setY(point.getY() + translateVector.getY());
+				
+				piece.setPosition(point);
+				
+				puzzlePieces.insert(piece);
+				queue.add(piece);	
 			}
 		}
-
-		int idMin = blocks.size() + 1;
-		List<Integer> idsToRemove = new ArrayList<>();
-		List<Integer> listBlockCurrent = new ArrayList<>();
-		for (Integer i : blocks.keySet()) {
-			listBlockCurrent = blocks.get(i);
-			List<Integer> commonIds = verifyCommonIds(listBlock, listBlockCurrent);
-			if (commonIds != null) {
-				listBlock = transferIds(listBlockCurrent, listBlock);
-				idsToRemove.add(i);
+		return queue;
+	}
+	
+	PuzzleLayout connect(int movedId, Point point) throws MPJPException {
+		if(!(validId(movedId, pieces.size()) && validPoint(point)))
+			throw new MPJPException();
+		
+		int block = pieces.get(movedId).getBlock();
+		Point translateVector = new Point(
+				point.getX() - pieces.get(movedId).getX(),
+				point.getY() - pieces.get(movedId).getY());
+		
+		Queue<PieceStatus> queue = translateBlock(translateVector, block);
+		
+		while(!queue.isEmpty()) {
+			PieceStatus piece = queue.poll();
+			
+			for(Direction d : Direction.values()) {
+				Integer nearId = structure.getPieceFacing(d, piece.getId());
+				
+				if(nearId != null) {
+					Point nearPiece = structure.getPieceCenterFacing(d, piece.getPosition());
+					
+					Set<PieceStatus> near = puzzlePieces.findNear(nearPiece.getX(), nearPiece.getY(), radius);
+					
+					if(!near.isEmpty()) {
+						for(PieceStatus candidate: near) {
+							if(candidate.getId() == nearId && candidate.getBlock() != block) {
+								candidate.setPosition(nearPiece);
+								candidate.setBlock(block);
+								
+								queue.add(candidate);
+							}
+						}
+					}
+				}
 			}
-			if (i < idMin)
-				idMin = i;
 		}
-
-		if (!idsToRemove.isEmpty()) {
-			blocks.keySet().removeAll(idsToRemove);
-		}
-
-		blocks.put(idMin, listBlock);
-
-		changeBlockIdOfPieces(idMin);
-
+		
 		return getCurrentLayout();
 	}
 	
-	/**
-	 * Restore transient fields that are not saved by serialization. In particular, the PointQuadtree is not serializable and can be easily restored from pieces.
-	 */
-	private void restore() {
-		PuzzleStructure puzzleStructure = new PuzzleStructure(info);
-		int nrPieces = puzzleStructure.getPieceCount();
-
-		for (Integer id = 0; id < nrPieces; id++) {
-			try {
-				Point correctPosition = puzzleStructure.getPieceStandardCenter(id);
-				PieceStatus pieceStatus = new PieceStatus(id, correctPosition);
-				List<Integer> list = new ArrayList<>();
-				pieceStatus.setBlock(id);
-				list.add(id);
-				pieces.put(id, pieceStatus);
-				blocks.put(id, list);
-				locations.put(id, correctPosition);
-			} catch (MPJPException e) {
-				e.printStackTrace();
-			}
-		}
+	PuzzleStructure getPuzzleStructure() {
+		return structure;
 	}
-	
-	/**
-	 * Scatter the puzzle's pieces on the board before solving it. This method is invoked when this workspace is instantiated.
-	 */
-	private void scatter() {
-		pieces = new HashMap<>();
-		blocks = new HashMap<>();
-		locations = new HashMap<>();
-		PuzzleStructure puzzleStructure = new PuzzleStructure(info);
-		int nrPieces = puzzleStructure.getPieceCount();
-
-		for (int id = 0; id < nrPieces; id++) {
-			Point randomPosition = puzzleStructure.getRandomPointInStandardPuzzle();
-
-			while (locations.containsValue(randomPosition)) {
-				randomPosition = puzzleStructure.getRandomPointInStandardPuzzle();
-			}
-
-			PieceStatus pieceStatus = new PieceStatus(id, randomPosition);
-			List<Integer> list = new ArrayList<>();
-			pieceStatus.setBlock(id);
-			list.add(id);
-			pieces.put(id, pieceStatus);
-			blocks.put(id, list);
-			locations.put(id, randomPosition);
-		}
-	}
-
-	/**
-	 * Select a piece given a pair of coordinates. If several pieces are selected then is returned the one with the highest block number. 
-	 * Note that lower ID blocks tend to be be larger (have more pieces) and higher ID blocks then to be disconnected pieces, the ones the 
-	 * player probably wants to move and connect.
-	 * @param point  - on the piece
-	 * @return id of the piece near the given endPoint with highest block number, or null if none is selected
-	 */
-	public Integer selectPiece(Point point) {
-		List<Integer> piecesSelected = new ArrayList<>();
-
-        for (Integer id : pieces.keySet()) {
-            PieceStatus pieceStatus = pieces.get(id);
-            Point pointCenterPosition = pieceStatus.getPosition();
-
-            if (Math.pow(pointCenterPosition.getX() - point.getX(), 2)
-                    + Math.pow(pointCenterPosition.getY() - point.getY(), 2) <= Math.pow(getSelectRadius(), 2)) {
-                piecesSelected.add(id);
-            }
-        }
-
-        int highestBlockId = 0;
-        Integer selectedId = null;
-
-        if (piecesSelected.size() == 1)
-            return piecesSelected.get(0);
-
-        for (Integer id : piecesSelected) {
-            PieceStatus pieceStatus = pieces.get(id);
-            if (pieceStatus.getBlock() > highestBlockId) {
-                highestBlockId = pieceStatus.getBlock();
-                selectedId = id;
-            }
-        }
-        return selectedId;
-
-	}
-
 }

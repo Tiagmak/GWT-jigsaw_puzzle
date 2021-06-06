@@ -1,10 +1,13 @@
 package mpjp.client;
 
 
-import java.awt.geom.GeneralPath;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Toolkit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimerTask;
 
 import javax.sound.sampled.Clip;
 
@@ -25,10 +28,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.Timer;
 
 import mpjp.client.MPJPResources.MPJPAudioResource;
-import mpjp.game.ShapeChanger;
-import mpjp.game.Workspace;
-import mpjp.game.cuttings.Cutting;
-import mpjp.game.cuttings.CuttingFactoryImplementation;
+import mpjp.game.PuzzleSolver;
 import mpjp.shared.MPJPException;
 import mpjp.shared.PieceStatus;
 import mpjp.shared.PuzzleInfo;
@@ -43,21 +43,23 @@ import mpjp.shared.geom.Segment;
 
 public class PlayGame extends Composite {
 	private static final int SHADE_SIZE = 4;
-	//private static final Color PIECE_BORDER_COLOR = new Color(150,150,150,150);
-	//Stroke stroke;
+
 	String labelFont;
 	private static final int POOL = 1000;
-	private static final String RESOURCE_DIR = "mpjp/resources/";
 	private static final String CLICK_SOUND_NAME = "click.wav";  
 	private static final String SOLVED_SOUND_NAME = "complete.wav";
 	private static final String ERROR_SOUND_NAME = "error.wav";
+	private static final long FRAMES_PER_SEC = 20L;
+	private static final long ANIMATION_TIME_IN_MILLISECS = 500L;
+	private static final long ANIMAMTION_DELAY = 1000L / FRAMES_PER_SEC;
+	private static final int TOTAL_ANIMATION_FRAMES = (int)
+			(ANIMATION_TIME_IN_MILLISECS * FRAMES_PER_SEC / 1000L);
 
 	private final PuzzleServiceAsync puzzleServiceAsync = GWT.create(PuzzleService.class);
 	final VerticalPanel allPanels = new VerticalPanel();
 
 	private Canvas canvas = Canvas.createIfSupported();
 	Context2d gc;
-	private Date lastUpdate = new Date();
 
 	Timer poolAndPaintTimer = null;
 
@@ -89,11 +91,6 @@ public class PlayGame extends Composite {
 		
 		initStructureToJoinOption();
 		mouseEvent();
-		
-
-		if (workspaceId != null && currentPuzzleLayout != null && currentPuzzleView != null)
-			initComplete = true;
-		solveComplete = false;
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		allPanels.add(canvas);
@@ -110,8 +107,8 @@ public class PlayGame extends Composite {
 		initWidget(allPanels);
 
 		initWorkspace(imageName, cuttingName, rows, columns);
-		canvas.setCoordinateSpaceHeight(1200);
-		canvas.setCoordinateSpaceWidth(800);
+		canvas.setCoordinateSpaceHeight(800);
+		canvas.setCoordinateSpaceWidth(1200);
 		mouseEvent();
 
 		allPanels.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
@@ -127,11 +124,14 @@ public class PlayGame extends Composite {
 				@Override
 				public void onSuccess(String result) {
 					workspaceId = result;
+					GWT.log("entrei aqui");
 					try {
 						puzzleServiceAsync.getPuzzleView(workspaceId, new AsyncCallback<PuzzleView>() {
 							@Override
 							public void onSuccess(PuzzleView result2) {
 								currentPuzzleView = result2;
+								GWT.log("entrei aqui");
+
 								try {
 									puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
 										@Override
@@ -209,7 +209,6 @@ public class PlayGame extends Composite {
 		new Timer() {
 			@Override
 			public void run() {
-				Date now = new Date();
 
 				if (solveComplete) {
 					cancel();
@@ -265,10 +264,8 @@ public class PlayGame extends Composite {
 					Integer id = result;
 					if(id == null) {
 						selectedBlockId = null;
-						GWT.log("Entrei nulll");
 					}
 					else {
-						GWT.log("Não entrei nulll");
 						PieceStatus piece = currentPuzzleLayout.getPieces().get(id);
 						selectedId = id;
 						selectedBlockId = piece.getBlock();
@@ -298,32 +295,6 @@ public class PlayGame extends Composite {
 		}
 	}
 	
-	/*private void connectPieces() {
-		try {
-			puzzleServiceAsync.getCurrentLayout(workspaceId, new AsyncCallback<PuzzleLayout>() {
-				
-				@Override
-				public void onSuccess(PuzzleLayout result) {
-					currentPuzzleLayout = result;
-					drawPuzzle( puzzleLayout);
-					
-				}
-				
-				@Override
-				public void onFailure(Throwable caught) {
-					// TODO Auto-generated method stub
-					
-				}
-			});
-		} catch (MPJPException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}*/
-
-
-
 	public void mouseReleased(MouseUpEvent e) {
 		moving = false;
 		if(selectedId != null) {
@@ -355,7 +326,6 @@ public class PlayGame extends Composite {
 					// TODO: handle exception
 				}
 			}
-			//connectPieces();
 		}
 	}
 	
@@ -379,9 +349,7 @@ public class PlayGame extends Composite {
 			paintFinal();
 		else if(currentPuzzleLayout.isSolved()) {
 			solveComplete = true;
-			GWT.log("Entrei no isSolved");
 			animateSolvedPuzzle();
-			paintFinal();
 			playClip(SOLVED_SOUND_NAME);
 		} else 
 			paintBlocks(puzzleLayout);
@@ -393,25 +361,53 @@ public class PlayGame extends Composite {
 		
 		MPJPResources.loadImageElement(puzzleInfo.getImageName(), i -> {
 			ImageElement image = i;
-			/*imageWidth = image.getWidth();
-			imageHeight = image.getHeight();
 
-			canvas.setVisible(true);
-			canvas.setCoordinateSpaceHeight(imageHeight);
-			canvas.setCoordinateSpaceWidth(imageWidth);*/
 			gc.drawImage(image, 0, 0, totalWidth, totalHeight);
 		});
 
-		
-		/*if(image == null) {  //TODO Falta ali o else que não sei o que se poe
-			//gc.setColor(Color.WHITE);
-			//gc.fillRect(0,0,totalWidth,totalHeight);
-		} else
-			//gc.drawImage(image,0,0,totalWidth,totalHeight,this);  */
 	}
 	
-	private void animateSolvedPuzzle() {
-		//TODO Preencher isto ???
+	private void animateSolvedPuzzle() {		
+		int totalWidth  = (int) currentPuzzleView.getWorkspaceWidth();
+		int totalHeight = (int) currentPuzzleView.getWorkspaceHeight();
+
+		int puzzleWidth = (int) currentPuzzleView.getPuzzleWidth();
+		int puzzleHeight = (int) currentPuzzleView.getPuzzleHeight();
+
+		Map<Integer,PieceStatus> pieces = currentPuzzleLayout.getPieces();
+		PieceStatus piece0 = pieces.get(0);
+		Point location0 = currentPuzzleView.getStandardPieceLocation(0);
+
+		int x0 = (int) (piece0.getX() - location0.getX()); 
+		int y0 = (int) (piece0.getY() - location0.getY());
+		
+		playClip(SOLVED_SOUND_NAME);
+		
+		new Timer(){
+			private int count = 0;
+
+			@Override
+			public void run() {
+				int x		= inLine(x0,0);
+				int y 		= inLine(y0,0);
+				int width 	= inLine(puzzleWidth,totalWidth);
+				int height 	= inLine(puzzleHeight,totalHeight);
+				
+				
+				MPJPResources.loadImageElement(puzzleInfo.getImageName(), i -> {
+					ImageElement image = i;
+					gc.drawImage(image,x,y,width,height);
+					if(count++ == TOTAL_ANIMATION_FRAMES)
+						cancel();
+				});
+
+			}	
+
+			private int inLine(int start, int end) {
+				return start +  count * (end - start) / TOTAL_ANIMATION_FRAMES;
+			}
+
+		}.scheduleRepeating((int) ANIMAMTION_DELAY);
 	}
 	
 	private void paintBlocks(PuzzleLayout puzzleLayout) {
@@ -433,8 +429,6 @@ public class PlayGame extends Composite {
 	}
 	
 	private void paintBlock(List<Integer> pieceIDs, boolean dragging, PuzzleLayout puzzleLayout) {
-		//AffineTransform initialTransform = gc.getTransform();	//TODO ????
-
 		try {
 			if(dragging)
 				for(int id: pieceIDs) {
@@ -442,7 +436,6 @@ public class PlayGame extends Composite {
 					gc.translate(SHADE_SIZE,SHADE_SIZE);
 					paintPiece(id,dragging, puzzleLayout);
 					gc.restore();
-					//gc.setTransform(initialTransform));
 				}
 		
 			for(int id: pieceIDs) {
@@ -467,12 +460,7 @@ public class PlayGame extends Composite {
 			gc.translate(delta.getX(),delta.getY());
 		gc.translate(center.getX(),center.getY());
 		gc.rotate(rotation);
-		
-		/*if(shading)
-			paintShade();
-		else if(puzzleInfo.getImageName() == null) 
-			paintPieceWithLabel(id);
-		else */
+
 		paintShape(currentPuzzleView.getPieceShape(id));
 		paintPieceWithImage(id);
 	}
@@ -513,22 +501,6 @@ public class PlayGame extends Composite {
 		gc.stroke();
 	}
 
-
-
-	private void paintPieceWithLabel(int id) {
-		//gc.setFont(labelFont);
-		
-		/*TextMetrics metrics = gc.measureText(labelFont);
-		String label = Integer.toString(id);
-		double x = - metrics.getWidth() / 2;
-		double y = x;//metrics.getAscent() / 2;
-	
-		paintPieceBorder();
-		gc.setFillStyle("white");
-		//gc.fill(shape);
-		gc.setFillStyle("LIGHT_GRAY");
-		//gc.drawString(label,x,y);*/
-	}
 	
 	private void paintPieceWithImage(int id ) {
 		gc.save();
@@ -539,7 +511,6 @@ public class PlayGame extends Composite {
 		int width = (int) currentPuzzleView.getPuzzleWidth();
 		int height = (int) currentPuzzleView.getPuzzleHeight();
 		
-		paintPieceBorder();
 		
 		MPJPResources.loadImageElement(puzzleInfo.getImageName(), i -> {
 			ImageElement image = i;
@@ -549,19 +520,9 @@ public class PlayGame extends Composite {
 		});
 	}
 	
-	private void paintPieceBorder() {
-		//gc.setColor("150,150,150,150");
-		//gc.setStroke(stroke);
-		//gc.draw(shape);
-	}
-	
-	private void paintShade() {
-		//gc.setShadowColor("DARK_GRAY");		//????
-		//gc.fill(shape);
-	}
 
 	private void showFooter() {		//TODO
-		//TODO Esta função vai mostrar a percentagem resolvida e o tempo que a pessoa demorou	
+		
 	}
 	
 }

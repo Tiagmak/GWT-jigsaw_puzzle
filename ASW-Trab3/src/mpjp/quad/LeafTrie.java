@@ -1,121 +1,89 @@
 package mpjp.quad;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+
 import mpjp.shared.HasPoint;
-import java.util.*;
 
 public class LeafTrie<T extends HasPoint> extends Trie<T> {
 
-	private List<T> save;
+	private ArrayList<T> list;
 
-	protected LeafTrie(double topLeftX, double topLeftY, double bottomRightX, double bottomRightY) {
+	LeafTrie(double topLeftX, double topLeftY, double bottomRightX, double bottomRightY) {
 		super(topLeftX, topLeftY, bottomRightX, bottomRightY);
-		save = new ArrayList<T>();
+		this.list = new ArrayList<T>(capacity);
 	}
 
-	/**
-	 * Accept a visitor to operate on a node of the composite structure
-	 * @param visitor - to the node
-	 */
-	@Override
-	public void accept(Visitor<T> visitor) {
-		visitor.visit(this);
-	}
-
-	/**
-	 * Collect all points in this node and its descendants in given set
-	 * @param nodes - set of HasPoint for collecting points
-	 */
-	@Override
-	void collectAll(Set<T> points) {
-		points.addAll(save);
-	}
-
-	/**
-	 * Collect points at a distance smaller or equal to radius from (x,y) and place them in given list
-	 * @param x - coordinate of point
-	 * @param y - coordinate of point
-	 * @param radius - from given point
-	 * @param nodes - set for collecting points
-	 */
-	@Override
-	void collectNear(double x, double y, double radius, Set<T> points) {
-		for (T i : save) {
-			if (getDistance(i.getX(), i.getY(), x, y) <= radius) {
-				points.add(i);
-			}
-		}
-	}
-
-	/**
-	 * Delete given point
-	 * @param point - to delete
-	 */
-	@Override
-	void delete(T point) {
-		save.remove(point);
-	}
-
-	/**
-	 * Find a recorded point with the same coordinates of given point
-	 * @param point - with requested coordinates
-	 * @return - recorded point, if found; null otherwise
-	 */
-	@Override
 	T find(T point) {
-		for (T i : save) {
-			if (i.getX() == point.getX() && i.getY() == point.getY()) {
-				return i;
-			}
+		for (T v : this.list) {
+			if (equals(v, point))
+				return v;
 		}
 		return null;
 	}
 
-	/**
-	 * A collection of points currently in this leaf
-	 * @return - collection of points
-	 */
-	Collection<T> getPoints() {
-		return save;
+	private boolean equals(T p1, T p2) {
+		return p1.getX() == p2.getX() && p1.getY() == p2.getY();
 	}
 
-	/**
-	 * Insert given point
-	 * @param point - to be inserted
-	 * @return - changed parent node
-	 */
-	@Override
+	private boolean isFull() {
+		return list.size() == capacity;
+	}
+
 	Trie<T> insert(T point) {
-		if (save.size() < Trie.capacity) {
-			save.add(point);
+		if (isFull()) {
+			NodeTrie<T> node = new NodeTrie<>(this.topLeftX, this.topLeftY, this.bottomRightX, this.bottomRightY);
+
+			for (T n : list) {
+				node.insert(n);
+			}
+
+			node.insert(point);
+			return node;
+		} else {
+			list.add(point);
 			return this;
 		}
 
-		NodeTrie<T> newNodeTrie = new NodeTrie<>(this.topLeftX, this.topLeftY, this.bottomRightX, this.bottomRightY);
-		for (T t : save) {
-			newNodeTrie.insert(t);
-		}
-		newNodeTrie.insert(point);
-		return newNodeTrie;
 	}
 
-	/**
-	 * Find a recorded point with the same coordinates of given point
-	 * @param point - with requested coordinates
-	 * @return - recorded point, if found; null otherwise
-	 */
-	@Override
 	Trie<T> insertReplace(T point) {
-		for (Iterator<T> it = save.iterator(); it.hasNext();) {
-			T nextT = it.next();
-			if (nextT.getX() == point.getX() && nextT.getY() == point.getY()) {
-				it.remove();
+
+		list.removeIf(p -> equals(p, point));
+		return this.insert(point);
+	}
+
+	void delete(T point) {
+		list.remove(point);
+	}
+
+	private boolean containsPoint(T point, double x, double y, double radius) {
+		return getDistance(point.getX(), point.getY(), x, y) <= radius;
+	}
+
+	void collectNear(double x, double y, double radius, Set<T> nodes) {
+		for (T p : list) {
+			if (containsPoint(p, x, y, radius)) {
+				nodes.add(p);
 			}
 		}
-		return this.insert(point);
+	}
+
+	void collectAll(Set<T> nodes) {
+		nodes.addAll(list);
 	}
 
 	@Override
 	public String toString() {
-		return "LeafTrie [save=" + save + "]";
+		return "LeafTrie [toString()=" + super.toString() + "]";
+	}
+
+	public void accept(Visitor<T> visitor) {
+		visitor.visit(this);
+	}
+
+	Collection<T> getPoints() {
+		return list;
 	}
 }
