@@ -46,10 +46,10 @@ public class CreateGame extends Composite {
 
 	RadioButton img1Button = new RadioButton("images", "oo");
 
-	RadioButton cuttingRoundButton = new RadioButton("cuttings", "Round");
-	RadioButton cuttingStraightButton = new RadioButton("cuttings", "Straight");
-	RadioButton cuttingTriangularButton = new RadioButton("cuttings", "Triangular");
-	RadioButton cuttingStandardButton = new RadioButton("cuttings", "Standard");
+	//RadioButton cuttingRoundButton = new RadioButton("cuttings", "Round");
+	//RadioButton cuttingStraightButton = new RadioButton("cuttings", "Straight");
+	//RadioButton cuttingTriangularButton = new RadioButton("cuttings", "Triangular");
+	//RadioButton cuttingStandardButton = new RadioButton("cuttings", "Standard");
 
 	RadioButton dimension1x2Button = new RadioButton("dimension", "1x2");
 	RadioButton dimension2x1Button = new RadioButton("dimension", "2x1");
@@ -60,7 +60,7 @@ public class CreateGame extends Composite {
 
 	Label title = new Label("Welcome to Multi-Player Jigsaw Puzzle");
 	final Label images = new HTML("Images");
-	final Label cuttings = new HTML("Cuting");
+	final Label cuttings = new HTML("Cutting");
 	final Label dimensions = new HTML("Dimension");
 
 	Button buttonBack = new Button("Back");
@@ -87,15 +87,42 @@ public class CreateGame extends Composite {
 				}
 			});
 		});
+		//////////////////////////////////////////////////////////////////////////////////
+		final ListBox dropBoxcuttings = new ListBox();
+		dropBoxcuttings.setMultipleSelect(false);
+		GWT.log(DEBUG_ID_PREFIX);
+		dropBoxcuttings.addAttachHandler(e -> {
+		//String eceec = new String();
+		managerService.getAvailableCuttings(new AsyncCallback<HashSet<String>>() {
+
+			@Override
+			public void onSuccess(HashSet<String> result) {
+				for (String string : result) {
+					dropBoxcuttings.addItem(string);
+					
+				}
+			}
 		
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
+				GWT.log(DEBUG_ID_PREFIX);
+			}
+		});
+		});
+		
+		
+		
+			
 		imagesPanel.add(dropBox);
 		
 		cuttingsPanel.setSpacing(55);
-		cuttingsPanel.add(cuttingRoundButton);
-		cuttingsPanel.add(cuttingStraightButton);
-		cuttingsPanel.add(cuttingTriangularButton);
-		cuttingsPanel.add(cuttingStandardButton);
-		cuttingRoundButton.setValue(true);
+		cuttingsPanel.add(dropBoxcuttings);
+		//cuttingsPanel.add(cuttingRoundButton);
+		//cuttingsPanel.add(cuttingStraightButton);
+		//cuttingsPanel.add(cuttingTriangularButton);
+		//cuttingsPanel.add(cuttingStandardButton);
+		//cuttingRoundButton.setValue(true);
 
 		dimensionPanel.setSpacing(55);
 		dimensionPanel.add(dimension1x2Button);
@@ -136,13 +163,19 @@ public class CreateGame extends Composite {
 			}
 		});
 
+		//String cuttings = "Round";
+		
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				
 				PlayGame playGame = null;
 				try {
-					playGame = new PlayGame(panels, managerService, "exterior2.jpg", "Triangular", 10, 10);
+					String imageName         = dropBox.getValue(dropBox.getSelectedIndex());
+					String imageNamecuttings = dropBoxcuttings.getValue(dropBoxcuttings.getSelectedIndex());
+					GWT.log("imageName : " + imageName);
+					GWT.log("imageNamecuttings: "+imageNamecuttings);
+					playGame = new PlayGame(panels, managerService, imageName, imageNamecuttings, 10, 10);
 				} catch (MPJPException e) {
 					e.printStackTrace();
 				}
@@ -150,5 +183,6 @@ public class CreateGame extends Composite {
 				panels.showWidget(2);
 			}
 		});
+		
 	}
 }

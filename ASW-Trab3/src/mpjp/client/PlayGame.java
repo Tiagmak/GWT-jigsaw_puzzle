@@ -326,91 +326,16 @@ public class PlayGame extends Composite {
 	}
 	
 	private void drawPuzzle() {
-		if(solveComplete) 
+		/*if(solveComplete) 
 			paintFinal();
 		else if(currentPuzzleLayout.isSolved()) {
 			solveComplete = true;
 			animateSolvedPuzzle(); 
 		} else 
-			paintBlocks();
+			paintBlocks();*/
 	}
 
-	private void animateSolvedPuzzle() {
-		//TODO Preencher isto ???
-	}
-	
-	private void paintFinal() {
-		int totalWidth  = (int) currentPuzzleView.getWorkspaceWidth();
-		int totalHeight = (int) currentPuzzleView.getWorkspaceHeight();
-		
-		/*if(image == null) {  //TODO Fazer isto
-			//gc.setColor(Color.WHITE);
-			//gc.fillRect(0,0,totalWidth,totalHeight);
-		} else
-			//gc.drawImage(image,0,0,totalWidth,totalHeight,this);  */
-	}
 
-	private void paintBlocks() {
-		Map<Integer, List<Integer>> blocks = currentPuzzleLayout.getBlocks();
-		
-		for (int blockId : blocks.keySet()) {
-			if (selectedBlockId != null && blockId == selectedBlockId)
-				continue;
-			paintBlock(blocks.get(blockId), false);
-		}
-
-		if (selectedBlockId != null)
-			paintBlock(blocks.get(selectedBlockId), true);
-
-		showFooter();
-	}
-	
-	private void paintBlock(List<Integer> pieceIDs, boolean dragging) {
-		//AffineTransform initialTransform = gc.getTransform();		//TODO ????
-		try {
-			if(dragging)
-				for(int id: pieceIDs) {
-					//gc.translate(SHADE_SIZE,SHADE_SIZE);
-					paintPiece(id,dragging,true);
-					//gc.setTransform(initialTransform);
-				}
-		
-			for(int id: pieceIDs) {
-				paintPiece(id,dragging,false);
-			}
-		} catch(RuntimeException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	void paintPiece(int id,boolean dragging,boolean shading) {
-		Shape shape;  /*= ShapeChanger.getShape(currentPuzzleView.getPieceShape(id));*/ ///??
-		Map<Integer, PieceStatus> pieces = currentPuzzleLayout.getPieces();
-		PieceStatus pieceStatus = pieces.get(id);
-		Point center =  pieceStatus.getPosition();
-		double rotation = pieceStatus.getRotation();
-
-		if(dragging)
-			gc.translate(delta.getX(),delta.getY());
-		gc.translate(center.getX(),center.getY());
-		gc.rotate(rotation);
-		
-		/*if(shading)
-			paintShade(shape);
-		else if(image == null) 
-			paintPieceWithLabel(g2,id,shape);
-		else 
-			paintPieceWithImage(g2,id,shape);*/
-	}
-	
-	private void paintShade(Shape shape) {
-		/*gc.setShadowColor(Color.DARK_GRAY);		//????
-		gc.fill(shape);*/
-	}
-
-	private void showFooter() {
-		//TODO Esta função vai mostrar a percentagem resolvida e o tempo que a pessoa demorou	
-	}
 	
 }
 
