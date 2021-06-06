@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -199,14 +200,37 @@ class ManagerTest extends PuzzleData {
 	@ParameterizedTest
 	@EnumSource(Puzzle.class)
 	void testConnect(Puzzle puzzle) throws MPJPException {
-		String workspaceId = manager.createWorkspace(puzzle.getPuzzleInfo());
+		/*String workspaceId = manager.createWorkspace(puzzle.getPuzzleInfo());
 		Point center = new Point(puzzle.width/2, puzzle.height/2);
 		int nonExistingPiece=-1;
 		assertDoesNotThrow(() -> manager.connect(workspaceId,0,center));
 		assertThrows(
 				MPJPException.class,
 				() -> manager.connect(workspaceId, nonExistingPiece, center)
-			);
+			);*/
+		PuzzleLayout puzzleLayout;
+		PuzzleInfo puzzleInfo = puzzle.getPuzzleInfo();
+		String ID = manager.createWorkspace(puzzleInfo);
+		PuzzleView renderInfo = manager.getPuzzleView(ID);
+
+		// Get center point
+		Point center = new Point(renderInfo.getWorkspaceWidth()/2.0, renderInfo.getWorkspaceHeight()/2.0);
+
+		puzzleLayout = assertDoesNotThrow(() 
+		-> manager.connect(ID, 0, center), 
+		"Failed to connect a first piece (0) at the center."
+		);
+
+		// Assert connected piece is placed in the right position
+		Point connectedPosition = puzzleLayout.getPieces().get(0).getPosition();
+		double euclides = Math.pow(connectedPosition.getX() - center.getX(), 2) + 
+		Math.pow(connectedPosition.getY() - center.getY(), 2);
+		assertTrue(Math.sqrt(euclides) < Workspace.getRadius());
+
+		// Assert that exception is raised when trying to connect a non existing piece
+		Random rand = new Random();
+		int randomPieceID = rand.nextInt() + (puzzleInfo.getColumns() * puzzleInfo.getRows()) - 1;
+		assertThrows(MPJPException.class, () -> manager.connect(ID, randomPieceID, center)); 
 	}
 
 	/**

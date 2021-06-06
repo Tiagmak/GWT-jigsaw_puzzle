@@ -186,7 +186,7 @@ public class CreateGame extends Composite {
 					String imageNamecuttings = dropBoxCuttings.getValue(dropBoxCuttings.getSelectedIndex());
 					GWT.log("imageName : " + imageName);
 					GWT.log("imageNamecuttings: "+imageNamecuttings);
-					playGame = new PlayGame(panels, managerService, imageName, imageNamecuttings, 10, 10);
+					playGame = new PlayGame(panels, managerService, imageName, imageNamecuttings, 2, 5);
 				} catch (MPJPException e) {
 					e.printStackTrace();
 				}

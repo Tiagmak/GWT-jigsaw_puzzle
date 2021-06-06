@@ -14,9 +14,7 @@ import mpjp.shared.geom.Point;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -25,8 +23,9 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 
 public class PuzzleServiceImpl extends RemoteServiceServlet implements PuzzleService{
-	private static final long serialVersionUID = 1L;
-	
+
+	private static final long serialVersionUID = 6915229573386745484L;
+
 	@Override
 	public void init() throws ServletException {
 		super.init();
