@@ -46,6 +46,11 @@ public class CreateGame extends Composite {
 	Button buttonBack = new Button("Back");
 	Button buttonPlayGame = new Button("Play Game");
 
+	/**
+	 * Paint create new game page
+	 * @param panels
+	 * @param managerService
+	 */
 	CreateGame(final DeckPanel panels, final PuzzleServiceAsync managerService) {
 		initWidget(allPanels);
 		gc = canvas.getContext2d();
@@ -153,6 +158,10 @@ public class CreateGame extends Composite {
 
 		buttonPlayGame.addClickHandler(new ClickHandler() {
 			@Override
+			/**
+			 * Activate when user click on buttonPlayGame
+			 * @param event
+			 */
 			public void onClick(ClickEvent event) {
 
 				PlayGame playGame = null;
@@ -177,6 +186,10 @@ public class CreateGame extends Composite {
 
 	}
 
+	/**
+	 * Paint image
+	 * @param imageName
+	 */
 	void paintCanvas(String imageName) {
 		MPJPResources.loadImageElement(imageName, i -> {
 			ImageElement image = i;

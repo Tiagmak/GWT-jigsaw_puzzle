@@ -3,7 +3,6 @@ package mpjp.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.DeckPanel;
-import com.google.gwt.user.client.ui.DecoratorPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 
 public class ASW_Trab3 implements EntryPoint {

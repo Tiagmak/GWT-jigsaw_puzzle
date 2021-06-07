@@ -3,8 +3,6 @@ package mpjp.game.cuttings;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.gwt.core.client.GWT;
-
 import mpjp.shared.MPJPException;
 
 public class CuttingFactoryImplementation implements CuttingFactory{

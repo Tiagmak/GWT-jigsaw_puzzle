@@ -2,8 +2,6 @@ package mpjp.client;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
